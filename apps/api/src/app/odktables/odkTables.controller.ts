@@ -34,14 +34,14 @@ export class OdkTablesController {
       .toPromise()
       .then(proxyRes => {
         const { status, data } = proxyRes;
-        const message: IAPIResponse = { status, data, message: 'success' };
+        const message: IAPIResponse = { data, message: 'success' };
         res.status(status).json(message);
       })
       .catch((proxyErr: AxiosError<any>) => {
         const { message, response } = proxyErr;
-        const { status, statusText, data } = response;
+        const { status, data } = response;
         console.log('proxyErr', proxyErr);
-        res.json({ status, message: message, data });
+        res.status(status).json({ status, message: message, data });
       });
   }
 }
