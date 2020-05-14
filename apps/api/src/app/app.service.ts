@@ -4,6 +4,6 @@ import { IAPIResponse } from '@odkxm/api-interfaces';
 @Injectable()
 export class AppService {
   getData(): IAPIResponse {
-    return { message: 'Api Running', status: 200 };
+    return { message: 'Api Running' };
   }
 }

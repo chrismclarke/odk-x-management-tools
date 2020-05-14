@@ -1,4 +1,4 @@
-import { Component, Output, EventEmitter } from '@angular/core';
+import { Component } from '@angular/core';
 import { environment } from '../../environments/environment';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { IStorageKey } from '../types';
@@ -77,7 +77,7 @@ import { OdkRestService } from '../services/odkrest.service';
       mat-form-field {
         max-width: 200px;
         width: 100%;
-        margin-left: 10px;
+        margin-right: 10px;
       }
     `
   ]
