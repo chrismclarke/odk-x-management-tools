@@ -12,8 +12,4 @@ export class AppController {
   getData(): Message {
     return this.appService.getData();
   }
-  @Get('projects')
-  getProjects(): Promise<Message> {
-    return this.appService.listProjects();
-  }
 }

@@ -1,17 +1,18 @@
-import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
+import {
+  Module,
+  NestModule,
+  MiddlewareConsumer,
+  HttpModule
+} from '@nestjs/common';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import {
-  OdkTablesController,
-  OdkTablesMiddleware,
-  OdkTablesService
-} from './odktables';
+import { OdkTablesController, OdkTablesMiddleware } from './odktables';
 
 @Module({
-  imports: [],
+  imports: [HttpModule],
   controllers: [AppController, OdkTablesController],
-  providers: [AppService, OdkTablesService]
+  providers: [AppService]
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
