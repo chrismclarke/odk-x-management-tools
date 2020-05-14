@@ -67,6 +67,7 @@ export class OdkRestService {
   }
 
   private async getPriviledgesInfo() {
+    this.userPriviledges$.next(undefined);
     const appId = this.appId$.value;
     const url = `${appId}/privilegesInfo`;
     const userPriviledges = await this.get<IResUserPriviledge>(url);
@@ -77,6 +78,7 @@ export class OdkRestService {
   }
 
   private async loadTables() {
+    this.allTables$.next([]);
     const appId = this.appId$.value;
     const url = `${appId}/tables`;
     const res = await this.get<IResTables>(url);
@@ -87,6 +89,7 @@ export class OdkRestService {
   }
 
   private async loadTableRows() {
+    this.tableRows$.next([]);
     const appId = this.appId$.value;
     const { tableId, schemaETag } = this.table$.value;
     const url = `${appId}/tables/${tableId}/ref/${schemaETag}/rows`;

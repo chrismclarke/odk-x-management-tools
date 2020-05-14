@@ -1,15 +1,32 @@
 import { NgModule } from '@angular/core';
-import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
-import { MatSelectModule } from '@angular/material/select';
-
-import { ServerLoginComponent } from './server-login';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 
-const MAT_COMPONENTS = [MatInputModule, MatButtonModule, MatSelectModule];
+// Material Components
+import { MatButtonModule } from '@angular/material/button';
+import { MatInputModule } from '@angular/material/input';
+import { MatPaginatorModule } from '@angular/material/paginator';
+import { MatSelectModule } from '@angular/material/select';
+import { MatTableModule } from '@angular/material/table';
 
-const CUSTOM_COMPONENTS = [ServerLoginComponent];
+// Custom Components
+import { ServerLoginComponent } from './server-login';
+import { AppTableSelectComponent } from './app-table-select';
+import { TableDataComponent } from './table-data';
+
+const MAT_COMPONENTS = [
+  MatButtonModule,
+  MatInputModule,
+  MatPaginatorModule,
+  MatSelectModule,
+  MatTableModule
+];
+
+const CUSTOM_COMPONENTS = [
+  ServerLoginComponent,
+  AppTableSelectComponent,
+  TableDataComponent
+];
 
 @NgModule({
   imports: [...MAT_COMPONENTS, FormsModule, ReactiveFormsModule, CommonModule],
