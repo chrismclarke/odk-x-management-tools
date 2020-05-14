@@ -1,18 +1,33 @@
-<odkxm-server-login
-  (connectionChange)="onConnectionChange($event)"
-></odkxm-server-login>
-
-<div *ngIf="projects.length > 0" style="margin-top: 20px;">
+<odkxm-server-login></odkxm-server-login>
+<form
+  *ngIf="(odkRest.allAppIds$ | async).length > 0"
+  style="margin-top: 20px;"
+  #f="ngForm"
+>
   <mat-form-field>
-    <mat-label>Project</mat-label>
+    <mat-label>App ID</mat-label>
     <select
       matNativeControl
-      (change)="selectProject($event)"
-      [value]="projects[0]"
+      (change)="odkRest.setAppId($event)"
+      [value]="odkRest.appId$ | async"
     >
-      <option *ngFor="let project of projects" [value]="project"
-        >{{ project }}
+      <option *ngFor="let appId of odkRest.allAppIds$ | async" [value]="appId"
+        >{{ appId }}
       </option>
     </select>
   </mat-form-field>
-</div>
+  <mat-form-field>
+    <mat-label>Table ID</mat-label>
+    <select
+      name="table"
+      ngModel
+      [compareWith]="compareById"
+      matNativeControl
+      (change)="odkRest.setTable(f.value.table)"
+    >
+      <option *ngFor="let table of odkRest.allTables$ | async" [ngValue]="table"
+        >{{ table.tableId }}
+      </option>
+    </select>
+  </mat-form-field>
+</form>

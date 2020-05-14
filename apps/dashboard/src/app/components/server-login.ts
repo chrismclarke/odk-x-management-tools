@@ -1,9 +1,8 @@
 import { Component, Output, EventEmitter } from '@angular/core';
 import { environment } from '../../environments/environment';
-import { HttpClient } from '@angular/common/http';
-import { Message } from '@odkxm/api-interfaces';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { IStorageKey } from '../types';
+import { OdkRestService } from '../services/odkrest.service';
 
 @Component({
   selector: 'odkxm-server-login',
@@ -87,8 +86,7 @@ export class ServerLoginComponent {
   isConnected = false;
   credentialsForm: FormGroup;
   storage = environment.production ? sessionStorage : localStorage;
-  @Output() connectionChange = new EventEmitter<string[]>();
-  constructor(private http: HttpClient, private fb: FormBuilder) {
+  constructor(private odkRest: OdkRestService, private fb: FormBuilder) {
     const serverUrl = this.getStorage('odkServerUrl');
     const token = this.getStorage('odkToken');
     const { username, password } = this.initializeToken(token);
@@ -104,29 +102,25 @@ export class ServerLoginComponent {
    * base odktables
    * @returns - list of available projects (e.g. [default])
    */
-  connect(formValues: ICredentialsForm) {
+  async connect(formValues: ICredentialsForm) {
     this.credentialsForm.disable();
     const { serverUrl, username, password } = formValues;
     this.setStorage('odkServerUrl', serverUrl);
     this.setStorage('odkToken', btoa(`${username}:${password}`));
-    this.http
-      .get<Message>('/odktables')
-      .toPromise()
-      .then(res => {
-        this.isConnected = true;
-        this.connectionChange.next(res.data);
-      })
-      .catch(err => {
-        console.error(err);
-        this.isConnected = false;
-        this.credentialsForm.enable();
-      });
+    this.isConnected = await this.odkRest.connect();
+    if (!this.isConnected) {
+      this.credentialsForm.enable();
+      // TODO - create async validator to show error on form
+      // (or handle in other component)
+    }
   }
+  // TODO - rework for new provider
   disconnect() {
     this.storage.removeItem('odkToken');
     this.credentialsForm.reset();
     this.credentialsForm.enable();
-    this.connectionChange.next([]);
+    this.isConnected = false;
+    this.odkRest.disconnect();
   }
 
   private createForm(model: ICredentialsFormModel): FormGroup {
