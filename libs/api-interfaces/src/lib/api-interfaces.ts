@@ -1,5 +1,5 @@
 export interface Message {
   status?: number;
-  data?: string;
+  data?: any;
   message: string;
 }
