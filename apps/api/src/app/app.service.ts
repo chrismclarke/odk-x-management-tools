@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { Message } from '@odkxm/api-interfaces';
+import { IAPIResponse } from '@odkxm/api-interfaces';
 
 @Injectable()
 export class AppService {
-  getData(): Message {
+  getData(): IAPIResponse {
     return { message: 'Api Running', status: 200 };
   }
 }

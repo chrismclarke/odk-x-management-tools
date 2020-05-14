@@ -7,7 +7,7 @@ import {
   Res
 } from '@nestjs/common';
 import { Request, Response } from 'express';
-import { Message } from '@odkxm/api-interfaces';
+import { IAPIResponse } from '@odkxm/api-interfaces';
 import { Agent } from 'https';
 import { AxiosError } from 'axios';
 
@@ -34,7 +34,7 @@ export class OdkTablesController {
       .toPromise()
       .then(proxyRes => {
         const { status, data } = proxyRes;
-        const message: Message = { status, data, message: 'success' };
+        const message: IAPIResponse = { status, data, message: 'success' };
         res.status(status).json(message);
       })
       .catch((proxyErr: AxiosError<any>) => {

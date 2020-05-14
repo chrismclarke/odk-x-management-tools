@@ -1,6 +1,6 @@
 import { Injectable, NestMiddleware } from '@nestjs/common';
 import { Request, Response } from 'express';
-import { Message } from '@odkxm/api-interfaces';
+import { IAPIResponse } from '@odkxm/api-interfaces';
 @Injectable()
 export class OdkTablesMiddleware implements NestMiddleware {
   use(req: Request, res: Response, next: Function) {
@@ -9,7 +9,7 @@ export class OdkTablesMiddleware implements NestMiddleware {
     const odkserverurl = headers.odkserverurl;
     // ensure serverUrl provided
     if (!odkserverurl) {
-      const message: Message = {
+      const message: IAPIResponse = {
         status: 400,
         message: 'No server url provided'
       };
