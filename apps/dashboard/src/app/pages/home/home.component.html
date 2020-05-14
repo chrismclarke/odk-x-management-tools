@@ -1,0 +1,18 @@
+<odkxm-server-login
+  (connectionChange)="onConnectionChange($event)"
+></odkxm-server-login>
+
+<div *ngIf="projects.length > 0" style="margin-top: 20px;">
+  <mat-form-field>
+    <mat-label>Project</mat-label>
+    <select
+      matNativeControl
+      (change)="selectProject($event)"
+      [value]="projects[0]"
+    >
+      <option *ngFor="let project of projects" [value]="project"
+        >{{ project }}
+      </option>
+    </select>
+  </mat-form-field>
+</div>
