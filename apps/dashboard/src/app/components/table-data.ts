@@ -1,23 +1,18 @@
-import { Component, Input, ViewChild, OnInit } from '@angular/core';
+import { Component, Input, ViewChild } from '@angular/core';
 import { ITableRow } from '../types/odk.types';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatTableDataSource } from '@angular/material/table';
+import { OdkRestService } from '../services/odkrest.service';
 
 @Component({
   selector: 'odkxm-table-data',
   template: `
-    <button>Show Meta Columns</button>
     <div class="container">
       <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
-        <!--- Note that these columns can be defined in any order.
-      The actual rendered columns are set as a property on the row definition" -->
-
-        <!-- Data Columns -->
         <ng-container *ngFor="let col of displayedColumns" [matColumnDef]="col">
           <th mat-header-cell *matHeaderCellDef>{{ col }}</th>
           <td mat-cell *matCellDef="let data">{{ data[col] }}</td>
         </ng-container>
-
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
         <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
       </table>
@@ -54,8 +49,12 @@ export class TableDataComponent {
     this.dataSource.paginator = this.paginator;
     this.displayedColumns = this.generateColumns(rows);
   }
-  constructor() {}
+  constructor(public odkRest: OdkRestService) {}
 
+  /**
+   * Convert passed input rows to table datasource,
+   * extracting odk column data and appending metadata
+   */
   private generateDatasource(rows: ITableRow[]) {
     console.log('generating data source', rows);
     const datasource = [];
@@ -79,7 +78,7 @@ export class TableDataComponent {
   }
 
   private generateColumns(rows: ITableRow[]) {
-    console.log('generate columnns', rows);
+    // TODO: Add toggle/option to include metadata columns in display
     return rows[0] ? rows[0].orderedColumns.map(c => c.column) : [];
   }
 }

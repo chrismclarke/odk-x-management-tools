@@ -13,6 +13,7 @@ import { MatTableModule } from '@angular/material/table';
 import { ServerLoginComponent } from './server-login';
 import { AppTableSelectComponent } from './app-table-select';
 import { TableDataComponent } from './table-data';
+import { TableActionsComponent } from './table-actions';
 
 const MAT_COMPONENTS = [
   MatButtonModule,
@@ -25,7 +26,8 @@ const MAT_COMPONENTS = [
 const CUSTOM_COMPONENTS = [
   ServerLoginComponent,
   AppTableSelectComponent,
-  TableDataComponent
+  TableDataComponent,
+  TableActionsComponent
 ];
 
 @NgModule({

@@ -40,7 +40,6 @@ export class OdkTablesController {
       .catch((proxyErr: AxiosError<any>) => {
         const { message, response } = proxyErr;
         const { status, data } = response;
-        console.log('proxyErr', proxyErr);
         res.status(status).json({ status, message: message, data });
       });
   }

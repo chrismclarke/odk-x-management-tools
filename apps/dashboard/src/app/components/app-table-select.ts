@@ -10,7 +10,7 @@ import { ITableMeta } from '../types/odk.types';
         <mat-label>App ID</mat-label>
         <select
           matNativeControl
-          (change)="odkRest.setAppId($event)"
+          (change)="odkRest.setActiveAppId($event)"
           [value]="odkRest.appId$ | async"
         >
           <option
@@ -27,7 +27,7 @@ import { ITableMeta } from '../types/odk.types';
           ngModel
           [compareWith]="compareById"
           matNativeControl
-          (change)="odkRest.setTable(f.value.table)"
+          (change)="odkRest.setActiveTable(f.value.table)"
         >
           <option
             *ngFor="let table of odkRest.allTables$ | async"
