@@ -31,6 +31,9 @@ export class OdkRestService {
     this.userPriviledges$ = new BehaviorSubject(undefined);
   }
 
+  /********************************************************
+   * Public methods exposed to components
+   *********************************************************/
   /**
    *  On initial connect, attempt to load list of apps
    *  and set current app as default.
@@ -40,7 +43,7 @@ export class OdkRestService {
     const appIds = await this.get<string[] | null>('');
     if (appIds) {
       this.allAppIds$.next(appIds);
-      this.setAppId(appIds[0]);
+      this.setActiveAppId(appIds[0]);
       return true;
     }
     return false;
@@ -48,91 +51,132 @@ export class OdkRestService {
   disconnect() {
     this.init();
   }
-
   /**
    * Set the active app id, triggering calls to retrieve
    * table data and user priviledges for the app
    */
-  setAppId(appId: string) {
+  setActiveAppId(appId: string) {
     this.appId$.next(appId);
     this.getPriviledgesInfo();
-    this.loadTables();
+    this.getTables();
     console.log('app id set', appId);
   }
-  setTable(table: ITableMeta) {
+  setActiveTable(table: ITableMeta) {
     console.log('setting table', table);
     this.table$.next(table);
-    this.loadTableRows();
+    this.getRows();
     console.log('table set', table);
   }
+  async backupTable(table: ITableMeta) {
+    console.log('getting definition', table);
+    const schema = await this.getDefinition(table);
+    console.log('schema', schema);
+    // const suffix = new Date().toISOString();
+    // const tableId = `${table.tableId}_${suffix}`;
+    // const backup: ITableMeta = { ...table, tableId };
+    // return this.createTable(backup);
+  }
 
+  /********************************************************
+   * Implementation of specific ODK Rest Functions
+   * https://docs.odk-x.org/odk-2-sync-protocol/
+   * TODO - could be made more pure, moving local state management
+   * and variable generation to methods above (maybe when refactor to store)
+   *********************************************************/
   private async getPriviledgesInfo() {
     this.userPriviledges$.next(undefined);
     const appId = this.appId$.value;
-    const url = `${appId}/privilegesInfo`;
-    const userPriviledges = await this.get<IResUserPriviledge>(url);
+    const path = `${appId}/privilegesInfo`;
+    const userPriviledges = await this.get<IResUserPriviledge>(path);
     console.log('user priviledges', userPriviledges);
     if (userPriviledges) {
       this.userPriviledges$.next(userPriviledges);
     }
   }
-
-  private async loadTables() {
+  private async getTables() {
     this.allTables$.next([]);
     const appId = this.appId$.value;
-    const url = `${appId}/tables`;
-    const res = await this.get<IResTables>(url);
+    const path = `${appId}/tables`;
+    const res = await this.get<IResTables>(path);
     if (res) {
       this.allTables$.next(res.tables);
       console.log('tables ids loaded', res.tables);
     }
   }
-
-  private async loadTableRows() {
+  private async getDefinition(table: ITableMeta) {
+    const appId = this.appId$.value;
+    const { tableId, schemaETag } = table;
+    const path = `${appId}/tables/${tableId}/ref/${schemaETag}`;
+    return this.get(path);
+  }
+  private async getRows() {
     this.tableRows$.next([]);
     const appId = this.appId$.value;
     const { tableId, schemaETag } = this.table$.value;
-    const url = `${appId}/tables/${tableId}/ref/${schemaETag}/rows`;
-    const res = await this.get<IResTableRows>(url);
+    const path = `${appId}/tables/${tableId}/ref/${schemaETag}/rows`;
+    const res = await this.get<IResTableRows>(path);
     if (res) {
       this.tableRows$.next(res.rows);
       console.log('table rows loaded', res.rows);
     }
   }
+  private async createTable(table: ITableMeta) {
+    const appId = this.appId$.value;
+    const { tableId } = table;
+    const path = `${appId}/tables/${tableId}`;
+    return this.put(path, table);
+  }
 
-  /**
-   * Simple wrapper around requests to the odk tables api which will be proxied
-   * via the local server api
-   * @param endpoint: See full list at https://docs.odk-x.org/odk-2-sync-protocol/
-   * @returns - Promise that will always resolve (null on error)
-   */
-  private get<ResponseDataType = any>(
-    endpoint: string
+  /********************************************************
+   * Rest call wrappers
+   * Proxied to local server via interceptor
+   *
+   * @param path: See full list at https://docs.odk-x.org/odk-2-sync-protocol/
+   * @returns - response data
+   *********************************************************/
+
+  private async get<ResponseDataType = any>(
+    path: string
   ): Promise<ResponseDataType> {
-    return new Promise(resolve => {
-      this.http
-        .get<IAPIResponse>(`/odktables/${endpoint}`)
-        .toPromise()
-        .then(res => {
-          resolve(res.data as ResponseDataType);
-        })
-        .catch(_ => {
-          // TODO - add error handler/notification (or leave to logger interceptor)
-          resolve(null);
-        });
-    });
+    try {
+      return (
+        await this.http.get<IAPIResponse>(`/odktables/${path}`).toPromise()
+      ).data;
+    } catch (error) {
+      return this.handleErr(error);
+    }
+  }
+  private async put<ResponseDataType = any>(
+    path: string,
+    body: any
+  ): Promise<ResponseDataType> {
+    try {
+      return (
+        await this.http
+          .put<IAPIResponse>(`/odktables/${path}`, body)
+          .toPromise()
+      ).data;
+    } catch (error) {
+      return this.handleErr(error);
+    }
+  }
+  private handleErr(error) {
+    // TODO - add error handler/notification (or leave to logger interceptor)
+    console.error(error);
+    throw new Error(error.message);
+    return null;
   }
 }
 
-/**
- * Rest API Interfaces
- */
-interface IResTables {
+/********************************************************
+ * Service-specific interfaces
+ *********************************************************/
+interface IResTables extends IResBase {
   appLevelManifestETag: string;
   tables: ITableMeta[];
 }
 interface IResTableRows extends IResBase {
-  dataETag: 'uuid:dba50e7b-dd57-4309-a93a-ac77ff154d40';
+  dataETag: string;
   rows: ITableRow[];
   tableUri: string;
 }
