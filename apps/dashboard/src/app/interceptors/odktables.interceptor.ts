@@ -19,10 +19,16 @@ export class OdkTablesInterceptor implements HttpInterceptor {
     const odkserverurl = this.getStorage('odkServerUrl');
     // send with basic authentication
     const Authorization = `basic ${this.getStorage('odkToken')}`;
+    console.log('intercept', req.headers);
     const modified = req.clone({
       url,
-      setHeaders: { odkserverurl, Authorization }
+      headers: req.headers,
+      setHeaders: {
+        odkserverurl,
+        Authorization
+      }
     });
+    console.log('sending req', req, req.body);
     return next.handle(modified);
   }
 
