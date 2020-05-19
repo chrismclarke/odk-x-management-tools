@@ -8,6 +8,7 @@
     "start": "nx run-many --target=serve --parallel --projects=\"api,dashboard\"",
     "build": "ng build",
     "build:prod": "ng build --configuration=production",
+    "deploy:vercel": "npx vercel --prod",
     "test": "ng test",
     "lint": "nx workspace-lint && ng lint",
     "e2e": "ng e2e",
