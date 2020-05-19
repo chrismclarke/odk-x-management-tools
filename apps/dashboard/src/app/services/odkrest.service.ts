@@ -66,11 +66,11 @@ export class OdkRestService {
     this.getTables();
     console.log('app id set', appId);
   }
-  setActiveTable(table: ITableMeta) {
-    console.log('setting table', table);
+  setActiveTable(table: ITableMeta | undefined) {
     this.table$.next(table);
-    this.getRows();
-    console.log('table set', table);
+    if (table) {
+      this.getRows();
+    }
   }
   async backupTable(table: ITableMeta, tableRows: ITableRow[]) {
     console.log('getting definition', table);
@@ -87,6 +87,13 @@ export class OdkRestService {
     console.log('creating backup', backup);
     await this.createTable(backup);
     await this.alterRows(backup, tableRows);
+  }
+  async deleteCurrentTable() {
+    const appId = this.appId$.value;
+    const { tableId, schemaETag } = this.table$.value;
+    await this.deleteTable(appId, tableId, schemaETag);
+    this.setActiveTable(undefined);
+    return this.getTables();
   }
 
   /********************************************************
@@ -147,6 +154,11 @@ export class OdkRestService {
     return this.put(path, RowList);
   }
 
+  private deleteTable(appId: string, tableId: string, schemaETag: string) {
+    const path = `${appId}/tables/${tableId}/ref/${schemaETag}`;
+    return this.delete(path);
+  }
+
   /********************************************************
    * Rest call wrappers
    * Proxied to local server via interceptor
@@ -178,6 +190,17 @@ export class OdkRestService {
         await this.http
           .put<IAPIResponse>(`/odktables/${path}`, body, { headers })
           .toPromise()
+      ).data;
+    } catch (error) {
+      return this.handleErr(error);
+    }
+  }
+  private async delete<ResponseDataType = any>(
+    path: string
+  ): Promise<ResponseDataType> {
+    try {
+      return (
+        await this.http.delete<IAPIResponse>(`/odktables/${path}`).toPromise()
       ).data;
     } catch (error) {
       return this.handleErr(error);
