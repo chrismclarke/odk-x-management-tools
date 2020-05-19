@@ -1,8 +1,13 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { IAPIResponse } from '@odkxm/api-interfaces';
 import { BehaviorSubject } from 'rxjs';
-import { ITableMeta, IUserPriviledge, ITableRow } from '../types/odk.types';
+import {
+  ITableMeta,
+  IUserPriviledge,
+  ITableRow,
+  ITableSchema
+} from '../types/odk.types';
 
 @Injectable({ providedIn: 'root' })
 export class OdkRestService {
@@ -67,14 +72,21 @@ export class OdkRestService {
     this.getRows();
     console.log('table set', table);
   }
-  async backupTable(table: ITableMeta) {
+  async backupTable(table: ITableMeta, tableRows: ITableRow[]) {
     console.log('getting definition', table);
     const schema = await this.getDefinition(table);
+    const { orderedColumns, tableId } = schema;
     console.log('schema', schema);
-    // const suffix = new Date().toISOString();
-    // const tableId = `${table.tableId}_${suffix}`;
-    // const backup: ITableMeta = { ...table, tableId };
-    // return this.createTable(backup);
+    // store epoch timestamp as suffix
+    const suffix = new Date().getTime();
+    const backup: ITableSchema = {
+      schemaETag: `uuid:${UUID().toString()}`,
+      tableId: `${tableId}_${suffix}`,
+      orderedColumns
+    };
+    console.log('creating backup', backup);
+    await this.createTable(backup);
+    await this.alterRows(backup, tableRows);
   }
 
   /********************************************************
@@ -107,7 +119,7 @@ export class OdkRestService {
     const appId = this.appId$.value;
     const { tableId, schemaETag } = table;
     const path = `${appId}/tables/${tableId}/ref/${schemaETag}`;
-    return this.get(path);
+    return this.get<IResSchema>(path);
   }
   private async getRows() {
     this.tableRows$.next([]);
@@ -120,11 +132,19 @@ export class OdkRestService {
       console.log('table rows loaded', res.rows);
     }
   }
-  private async createTable(table: ITableMeta) {
+
+  private async createTable(schema: ITableSchema) {
     const appId = this.appId$.value;
-    const { tableId } = table;
+    const { tableId } = schema;
     const path = `${appId}/tables/${tableId}`;
-    return this.put(path, table);
+    return this.put(path, schema);
+  }
+
+  private alterRows(table: ITableMeta | ITableSchema, RowList: rows) {
+    const appId = this.appId$.value;
+    const { tableId, schemaETag } = table;
+    const path = `${appId}/tables/${tableId}/ref/${schemaETag}/rows`;
+    return this.put(path, RowList);
   }
 
   /********************************************************
@@ -151,9 +171,12 @@ export class OdkRestService {
     body: any
   ): Promise<ResponseDataType> {
     try {
+      const headers = new HttpHeaders({
+        'Content-Type': 'application/json'
+      });
       return (
         await this.http
-          .put<IAPIResponse>(`/odktables/${path}`, body)
+          .put<IAPIResponse>(`/odktables/${path}`, body, { headers })
           .toPromise()
       ).data;
     } catch (error) {
@@ -166,6 +189,16 @@ export class OdkRestService {
     throw new Error(error.message);
     return null;
   }
+}
+
+// Simple implementation of UUIDv4
+// tslint:disable no-bitwise
+function UUID() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = (Math.random() * 16) | 0,
+      v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
 }
 
 /********************************************************
@@ -187,4 +220,11 @@ interface IResBase {
   webSafeRefetchCursor: null;
   webSafeResumeCursor: string;
 }
+interface IResSchema extends ITableSchema {
+  selfUri: string;
+  tableUri: string;
+}
+
 type IResUserPriviledge = IUserPriviledge;
+// simple type mapping to keep fidelity with sync endpoint
+type rows = ITableRow[];

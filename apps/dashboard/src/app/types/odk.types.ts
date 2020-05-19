@@ -10,6 +10,19 @@ export interface ITableMeta {
   tableId: string;
   tableLevelManifestETag: string;
 }
+export interface ITableSchema {
+  orderedColumns: ISchemaColumn[];
+  schemaETag: string;
+  tableId: string;
+}
+// Schema columns are used when defining database data structures
+interface ISchemaColumn {
+  elementKey: string;
+  elementName: string;
+  elementType: string;
+  listChildElementKeys: string;
+}
+
 export interface ITableRow {
   createUser: string;
   dataETagAtModification: string;
