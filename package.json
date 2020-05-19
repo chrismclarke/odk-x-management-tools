@@ -60,6 +60,7 @@
     "@nrwl/nest": "9.2.4",
     "@nrwl/node": "9.2.4",
     "@nrwl/workspace": "9.2.4",
+    "@types/express": "^4.17.6",
     "@types/jest": "25.1.4",
     "@types/node": "~8.9.4",
     "codelyzer": "~5.0.1",

@@ -4,7 +4,8 @@ import {
   Headers,
   HttpService,
   All,
-  Res
+  Res,
+  Body
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { IAPIResponse } from '@odkxm/api-interfaces';
@@ -22,7 +23,8 @@ export class OdkTablesController {
   proxy(
     @Req() req: Request,
     @Res() res: Response,
-    @Headers('odkserverurl') odkserverurl
+    @Headers('odkserverurl') odkserverurl,
+    @Body() body: any
   ) {
     // url ensured via middleware
     const url = `${odkserverurl}/odktables${req.url}`;
@@ -30,7 +32,7 @@ export class OdkTablesController {
       rejectUnauthorized: false
     });
     this.http
-      .request({ ...req, url, httpsAgent })
+      .request({ ...(req as any), url, httpsAgent, data: body })
       .toPromise()
       .then(proxyRes => {
         const { status, data } = proxyRes;
@@ -39,7 +41,7 @@ export class OdkTablesController {
       })
       .catch((proxyErr: AxiosError<any>) => {
         const { message, response } = proxyErr;
-        const { status, data } = response;
+        const { status, data } = response ? response : ({} as any);
         res.status(status).json({ status, message: message, data });
       });
   }
