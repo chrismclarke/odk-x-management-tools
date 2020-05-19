@@ -10,6 +10,10 @@ import { environment } from '../../environments/environment';
 import { IStorageKey } from '../types';
 
 @Injectable()
+/**
+ * Intercept all HTTP requests to the api and set authentication
+ * and odkServerUrl headers from storage
+ */
 export class OdkTablesInterceptor implements HttpInterceptor {
   intercept(
     req: HttpRequest<any>,
@@ -19,7 +23,6 @@ export class OdkTablesInterceptor implements HttpInterceptor {
     const odkserverurl = this.getStorage('odkServerUrl');
     // send with basic authentication
     const Authorization = `basic ${this.getStorage('odkToken')}`;
-    console.log('intercept', req.headers);
     const modified = req.clone({
       url,
       headers: req.headers,

@@ -1,11 +1,7 @@
 import { Component, Input, Inject } from '@angular/core';
 import { ITableMeta } from '../types/odk.types';
 import { OdkRestService } from '../services/odkrest.service';
-import {
-  MatDialog,
-  MatDialogRef,
-  MAT_DIALOG_DATA
-} from '@angular/material/dialog';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 
 @Component({
   selector: 'odkxm-table-actions',
@@ -44,8 +40,7 @@ export class TableActionsComponent {
   async backupTable() {
     this.disabled = true;
     try {
-      const rows = this.odkRest.tableRows$.value;
-      await this.odkRest.backupTable(this.table, rows);
+      await this.odkRest.backupCurrentTable();
       console.log('backup complete');
     } catch (error) {
       console.error('backup error', error);
@@ -53,16 +48,16 @@ export class TableActionsComponent {
     this.disabled = false;
   }
   async promptDelete() {
+    this.disabled = true;
     const dialogRef = this.dialog.open(TableActionsDialogComponent, {
       width: '250px'
     });
 
     dialogRef.afterClosed().subscribe(async shouldDelete => {
-      console.log('The dialog was closed', shouldDelete);
       if (shouldDelete) {
         await this.odkRest.deleteCurrentTable();
-        console.log('table deleted');
       }
+      this.disabled = false;
     });
   }
   async exportCSV() {
@@ -80,7 +75,6 @@ export class TableActionsComponent {
     >
     <mat-dialog-actions>
       <button mat-button mat-dialog-close>Cancel</button>
-      <!-- The mat-dialog-close directive optionally accepts a value as a result for the dialog. -->
       <button mat-button [mat-dialog-close]="true">Delete</button>
     </mat-dialog-actions>
   `

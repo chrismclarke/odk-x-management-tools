@@ -25,7 +25,7 @@ export class OdkRestService {
   /**
    * Initialise observers
    * @remark - moved outside declaration and constructor
-   * to allow reset
+   * to allow disconnect reset function
    */
   private init() {
     this.allAppIds$ = new BehaviorSubject([]);
@@ -64,35 +64,57 @@ export class OdkRestService {
     this.appId$.next(appId);
     this.getPriviledgesInfo();
     this.getTables();
-    console.log('app id set', appId);
   }
-  setActiveTable(table: ITableMeta | undefined) {
+  async setActiveTable(table: ITableMeta | undefined) {
+    console.log('setting active table', table);
     this.table$.next(table);
+    this.tableRows$.next([]);
     if (table) {
-      this.getRows();
+      const appId = this.appId$.value;
+      const { tableId, schemaETag } = table;
+      const { rows } = await this.getRows(appId, tableId, schemaETag);
+      this.tableRows$.next(rows);
     }
   }
-  async backupTable(table: ITableMeta, tableRows: ITableRow[]) {
-    console.log('getting definition', table);
-    const schema = await this.getDefinition(table);
-    const { orderedColumns, tableId } = schema;
-    console.log('schema', schema);
+  async backupCurrentTable() {
+    const appId = this.appId$.value;
+    const { tableId, schemaETag } = this.table$.value;
+    const schema = await this.getDefinition(appId, tableId, schemaETag);
+    const { orderedColumns } = schema;
     // store epoch timestamp as suffix
     const suffix = new Date().getTime();
-    const backup: ITableSchema = {
+    const backupSchema: ITableSchema = {
       schemaETag: `uuid:${UUID().toString()}`,
       tableId: `${tableId}_${suffix}`,
       orderedColumns
     };
-    console.log('creating backup', backup);
-    await this.createTable(backup);
-    await this.alterRows(backup, tableRows);
+    const backup = await this.createTable(backupSchema);
+    console.log('backup table res', backup);
+    const rows = this.tableRows$.value.map(r => {
+      // note - selfUris aren't recognised and should be removed
+      delete r.selfUri;
+      r.dataETagAtModification = backup.dataETag;
+      return r;
+    });
+    const rowList = { rows, dataETag: backup.dataETag };
+    const res = await this.alterRows(
+      appId,
+      backup.tableId,
+      backup.schemaETag,
+      rowList
+    );
+    // TODO - handle response related to row outcomes
+    console.log('bakup res', res);
+    await this.getTables();
+    // TODO - fix ngmodel bindings in app-table-select to allow
+    // direct loading of this table as active
+    await this.setActiveTable(backup);
   }
   async deleteCurrentTable() {
     const appId = this.appId$.value;
     const { tableId, schemaETag } = this.table$.value;
     await this.deleteTable(appId, tableId, schemaETag);
-    this.setActiveTable(undefined);
+    await this.setActiveTable(undefined);
     return this.getTables();
   }
 
@@ -122,36 +144,34 @@ export class OdkRestService {
       console.log('tables ids loaded', res.tables);
     }
   }
-  private async getDefinition(table: ITableMeta) {
-    const appId = this.appId$.value;
-    const { tableId, schemaETag } = table;
+  private async getDefinition(
+    appId: string,
+    tableId: string,
+    schemaETag: string
+  ) {
     const path = `${appId}/tables/${tableId}/ref/${schemaETag}`;
     return this.get<IResSchema>(path);
   }
-  private async getRows() {
-    this.tableRows$.next([]);
-    const appId = this.appId$.value;
-    const { tableId, schemaETag } = this.table$.value;
+  private async getRows(appId: string, tableId: string, schemaETag: string) {
     const path = `${appId}/tables/${tableId}/ref/${schemaETag}/rows`;
-    const res = await this.get<IResTableRows>(path);
-    if (res) {
-      this.tableRows$.next(res.rows);
-      console.log('table rows loaded', res.rows);
-    }
+    return this.get<IResTableRows>(path);
   }
 
   private async createTable(schema: ITableSchema) {
     const appId = this.appId$.value;
     const { tableId } = schema;
     const path = `${appId}/tables/${tableId}`;
-    return this.put(path, schema);
+    return this.put<IResTableCreate>(path, schema);
   }
 
-  private alterRows(table: ITableMeta | ITableSchema, RowList: rows) {
-    const appId = this.appId$.value;
-    const { tableId, schemaETag } = table;
+  private alterRows(
+    appId: string,
+    tableId: string,
+    schemaETag: string,
+    rows: RowList
+  ) {
     const path = `${appId}/tables/${tableId}/ref/${schemaETag}/rows`;
-    return this.put(path, RowList);
+    return this.put(path, rows);
   }
 
   private deleteTable(appId: string, tableId: string, schemaETag: string) {
@@ -236,6 +256,26 @@ interface IResTableRows extends IResBase {
   rows: ITableRow[];
   tableUri: string;
 }
+interface IResAlterRows {
+  dataETag: string;
+  rows: ITableRowAltered[];
+  tableUri: string;
+}
+interface ITableRowAltered extends ITableRow {
+  outcome: 'UNKNOWN' | 'SUCCESS' | 'DENIED' | 'IN_CONFLICT' | 'FAILED';
+}
+interface IResTableCreate {
+  tableId: string;
+  dataETag: string;
+  schemaETag: string;
+  selfUri: string;
+  definitionUri: string;
+  dataUri: string;
+  instanceFilesUri: string;
+  diffUri: string;
+  aclUri: string;
+  tableLevelManifestETag: null;
+}
 interface IResBase {
   hasMoreResults: boolean;
   hasPriorResults: boolean;
@@ -249,5 +289,7 @@ interface IResSchema extends ITableSchema {
 }
 
 type IResUserPriviledge = IUserPriviledge;
-// simple type mapping to keep fidelity with sync endpoint
-type rows = ITableRow[];
+interface RowList {
+  rows: ITableRow[];
+  dataETag: string;
+}
