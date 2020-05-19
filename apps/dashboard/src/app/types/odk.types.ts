@@ -45,6 +45,20 @@ export interface ITableRow {
   savepointType: Savepoint;
   selfUri: string;
 }
+export interface ITableRowCSVMeta {
+  _default_access: AccessLevel;
+  _row_owner: string;
+  _group_read_only: BoolString;
+  _group_modify: BoolString;
+  _group_privileged: BoolString;
+  _form_id: string;
+  _id: string;
+  _locale: string;
+  _row_etag: string;
+  _savepoint_creator: string;
+  _savepoint_timestamp: ISOString;
+  _savepoint_type: Savepoint;
+}
 interface ITableColumn {
   column: string;
   value: any;

@@ -1,7 +1,8 @@
-import { Component, Input, Inject } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { ITableMeta } from '../types/odk.types';
 import { OdkRestService } from '../services/odkrest.service';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { ExportService } from '../services/export.service';
 
 @Component({
   selector: 'odkxm-table-actions',
@@ -9,7 +10,7 @@ import { MatDialog, MatDialogRef } from '@angular/material/dialog';
     <button mat-raised-button (click)="backupTable()" [disabled]="disabled">
       Backup Table
     </button>
-    <button mat-raised-button (click)="backupTable()" [disabled]="disabled">
+    <button mat-raised-button (click)="exportCSV()" [disabled]="disabled">
       Export CSV
     </button>
     <button
@@ -35,7 +36,11 @@ import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 export class TableActionsComponent {
   @Input() table: ITableMeta;
   disabled = false;
-  constructor(private odkRest: OdkRestService, public dialog: MatDialog) {}
+  constructor(
+    private odkRest: OdkRestService,
+    public dialog: MatDialog,
+    public exportService: ExportService
+  ) {}
 
   async backupTable() {
     this.disabled = true;
@@ -62,6 +67,8 @@ export class TableActionsComponent {
   }
   async exportCSV() {
     console.log('exporting csv');
+    const rows = this.odkRest.tableRows$.value;
+    this.exportService.exportToCSV(rows);
   }
 }
 

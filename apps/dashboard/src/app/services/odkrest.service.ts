@@ -118,6 +118,38 @@ export class OdkRestService {
     return this.getTables();
   }
 
+  /**
+   * By default ODK rest returns rows with metadata and values defined in
+   * a way not useable by csv export or components. Convert to usable format
+   */
+  private async _convertRows(rows: ITableRow[]) {
+    const converted = [];
+    rows.forEach(row => {
+      // take copy for field deletion
+      const r = { ...row };
+      const data: any = {};
+      // assign data fields
+      r.orderedColumns.forEach(el => {
+        const { column, value } = el;
+        data[column] = value;
+      });
+      delete r.orderedColumns;
+      // assign scope field
+      const { filterScope } = r;
+      Object.entries(filterScope).forEach(([key, value]) => {
+        data[`_${key}`] = value;
+      });
+      delete r.filterScope;
+      // re-assign other fields
+      delete r.selfUri;
+      Object.entries(r).forEach(([key, value]) => {
+        data[`_${key}`] = value;
+      });
+      converted.push(data);
+    });
+    return converted;
+  }
+
   /********************************************************
    * Implementation of specific ODK Rest Functions
    * https://docs.odk-x.org/odk-2-sync-protocol/
@@ -233,6 +265,10 @@ export class OdkRestService {
     return null;
   }
 }
+
+/********************************************************
+ * Helper functions
+ *********************************************************/
 
 // Simple implementation of UUIDv4
 // tslint:disable no-bitwise

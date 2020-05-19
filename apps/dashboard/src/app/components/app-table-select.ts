@@ -53,6 +53,7 @@ import { Subscription } from 'rxjs';
 export class AppTableSelectComponent implements OnInit, OnDestroy {
   activeTableControl = new FormControl();
   table$: Subscription;
+
   constructor(public odkRest: OdkRestService) {}
 
   // Use subscriptions to set form value for table objects
