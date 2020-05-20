@@ -33,7 +33,7 @@ jobs:
           yarn install
           npm run build
       - name: deploy staging
-        uses: ./
+        uses: amondnet/vercel-action@v19
         id: vercel-action-staging
         if: github.event_name == 'pull_request'
         with:
@@ -42,7 +42,7 @@ jobs:
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
       - name: deploy production
-        uses: ./
+        uses: amondnet/vercel-action@v19
         id: vercel-action-production
         if: github.event_name == 'push'
         with:
