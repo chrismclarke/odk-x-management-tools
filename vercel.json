@@ -2,7 +2,7 @@
   "version": 2,
   "functions": {
     "dist/apps/api/main.js": {
-      "memory": "1024"
+      "memory": 1024
     }
   },
   "routes": [
