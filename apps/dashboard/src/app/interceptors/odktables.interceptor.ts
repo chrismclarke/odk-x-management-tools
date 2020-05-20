@@ -43,8 +43,10 @@ export class OdkTablesInterceptor implements HttpInterceptor {
     return url.indexOf('/api') === 0 ? url : `/api${url}`;
   }
 
+  // TODO - move to separate provider so that storage can know whether session or local in use
   private getStorage(key: IStorageKey): string | undefined {
-    const storage = environment.production ? sessionStorage : localStorage;
-    return storage.getItem(key);
+    return localStorage.getItem(key)
+      ? localStorage.getItem(key)
+      : sessionStorage.getItem(key);
   }
 }

@@ -21,12 +21,18 @@ import { OdkRestService } from '../services/odkrest.service';
             required
             type="url"
             formControlName="serverUrl"
-            autocomplete="url"
+            name="url"
+            autocomplete="on"
           />
         </mat-form-field>
         <mat-form-field>
           <mat-label>Username</mat-label>
-          <input matInput formControlName="username" autocomplete="username" />
+          <input
+            matInput
+            formControlName="username"
+            autocomplete="on"
+            name="username"
+          />
         </mat-form-field>
         <mat-form-field>
           <mat-label>Password</mat-label>
@@ -34,9 +40,13 @@ import { OdkRestService } from '../services/odkrest.service';
             matInput
             formControlName="password"
             type="password"
-            autocomplete="current-password"
+            name="current-password"
+            autocomplete="on"
           />
         </mat-form-field>
+        <mat-checkbox formControlName="shouldRemember" color="primary">
+          Remember Me
+        </mat-checkbox>
       </div>
       <div class="form-buttons-container">
         <button
@@ -85,15 +95,17 @@ import { OdkRestService } from '../services/odkrest.service';
 export class ServerLoginComponent {
   isConnected = false;
   credentialsForm: FormGroup;
-  storage = environment.production ? sessionStorage : localStorage;
+  storage: Storage = localStorage;
   constructor(private odkRest: OdkRestService, private fb: FormBuilder) {
     const serverUrl = this.getStorage('odkServerUrl');
     const token = this.getStorage('odkToken');
     const { username, password } = this.initializeToken(token);
+    const isRemembered = this.getStorage('odkServerUrl') ? true : false;
     this.credentialsForm = this.createForm({
       serverUrl: [serverUrl, Validators.required],
       username: username,
-      password: password
+      password: password,
+      shouldRemember: isRemembered
     });
   }
 
@@ -104,7 +116,8 @@ export class ServerLoginComponent {
    */
   async connect(formValues: ICredentialsForm) {
     this.credentialsForm.disable();
-    const { serverUrl, username, password } = formValues;
+    const { serverUrl, username, password, shouldRemember } = formValues;
+    this.storage = shouldRemember ? localStorage : sessionStorage;
     this.setStorage('odkServerUrl', serverUrl);
     this.setStorage('odkToken', btoa(`${username}:${password}`));
     this.isConnected = await this.odkRest.connect();
@@ -153,5 +166,6 @@ interface ICredentialsForm {
   serverUrl: string;
   username: string;
   password: string;
+  shouldRemember: boolean;
 }
 type ICredentialsFormModel = { [key in keyof ICredentialsForm]: any };
