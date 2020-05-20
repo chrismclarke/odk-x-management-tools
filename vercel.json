@@ -1,7 +1,9 @@
 {
   "version": 2,
   "functions": {
-    "dist/apps/api/main.js": {}
+    "dist/apps/api/main.js": {
+      "runtime": "@now/node"
+    }
   },
   "routes": [
     { "src": "/api/(.*)", "dest": "/dist/apps/api/main.js" },
