@@ -66,9 +66,14 @@ export class TableActionsComponent {
     });
   }
   async exportCSV() {
+    this.disabled = true;
     console.log('exporting csv');
     const rows = this.odkRest.tableRows$.value;
-    this.exportService.exportToCSV(rows);
+    const { tableId } = this.odkRest.table$.value;
+    const suffix = new Date().toISOString().substring(0, 10);
+    const filename = `${tableId}_${suffix}.csv`;
+    this.exportService.exportToCSV(rows, filename);
+    this.disabled = false;
   }
 }
 
