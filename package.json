@@ -5,8 +5,8 @@
   "scripts": {
     "ng": "ng",
     "nx": "nx",
-    "start": "nx run-many --target=serve --parallel --projects=\"api,dashboard\"",
-    "build": "nx run-many --target=build --configuration=production --parallel --projects=\"api,dashboard\"",
+    "start": "npx nx run-many --target=serve --parallel --projects=\"api,dashboard\"",
+    "build": "npx nx run-many --target=build --configuration=production --parallel --projects=\"api,dashboard\"",
     "deploy:vercel": "npm run build && npx vercel --prod",
     "test": "ng test",
     "lint": "nx workspace-lint && ng lint",
