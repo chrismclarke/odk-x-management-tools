@@ -6,7 +6,11 @@ import {
   ITableMeta,
   IUserPriviledge,
   ITableRow,
-  ITableSchema
+  ITableSchema,
+  AccessLevel,
+  BoolString,
+  ISOString,
+  Savepoint
 } from '../types/odk.types';
 
 @Injectable({ providedIn: 'root' })
@@ -73,7 +77,7 @@ export class OdkRestService {
       const appId = this.appId$.value;
       const { tableId, schemaETag } = table;
       const { rows } = await this.getRows(appId, tableId, schemaETag);
-      this.tableRows$.next(rows);
+      this.tableRows$.next(this._convertODKRowsForExport(rows));
     }
   }
   async backupCurrentTable() {
@@ -90,8 +94,10 @@ export class OdkRestService {
     };
     const backup = await this.createTable(backupSchema);
     console.log('backup table res', backup);
-    const rows = this.tableRows$.value.map(r => {
-      // note - selfUris aren't recognised and should be removed
+    // fetch rows again instead of using converted as easier to modify
+    let { rows } = await this.getRows(appId, tableId, schemaETag);
+    rows = rows.map(r => {
+      // selfUri property not supported on put request
       delete r.selfUri;
       r.dataETagAtModification = backup.dataETag;
       return r;
@@ -106,8 +112,6 @@ export class OdkRestService {
     // TODO - handle response related to row outcomes
     console.log('bakup res', res);
     await this.getTables();
-    // TODO - fix ngmodel bindings in app-table-select to allow
-    // direct loading of this table as active
     await this.setActiveTable(backup);
   }
   async deleteCurrentTable() {
@@ -120,41 +124,56 @@ export class OdkRestService {
 
   /**
    * By default ODK rest returns rows with metadata and values defined in
-   * a way not useable by csv export or components. Convert to usable format
+   * a different format to how it is shown and exported in app
+   * - Convert metadata fields to snake_case and prefix with underscore,
+   * - De-nest filterScope and add to metadata prefixed with _group
+   * - De-nest orderedColumns and extract to variable values
+   * - Delete various fields
    */
-  private async _convertRows(rows: ITableRow[]) {
+  private _convertODKRowsForExport(rows: IResTableRow[]): ITableRow[] {
     const converted = [];
     rows.forEach(row => {
       // take copy for field deletion
-      const r = { ...row };
+      const r: IResTableRow = { ...row };
+      // TODO - types won't be strongly checked, so need to double-check code is correct
       const data: any = {};
       // assign data fields
       r.orderedColumns.forEach(el => {
         const { column, value } = el;
         data[column] = value;
       });
-      delete r.orderedColumns;
       // assign scope field
       const { filterScope } = r;
       Object.entries(filterScope).forEach(([key, value]) => {
-        data[`_${key}`] = value;
+        data[`_${this._camelToSnake(key)}`] = value;
       });
+      delete r.orderedColumns;
+      delete r.dataETagAtModification;
       delete r.filterScope;
-      // re-assign other fields
       delete r.selfUri;
       Object.entries(r).forEach(([key, value]) => {
-        data[`_${key}`] = value;
+        data[`_${this._camelToSnake(key)}`] = value;
       });
       converted.push(data);
     });
     return converted;
   }
+  /**
+   * String convert util
+   * @example rowETag -> row_etag
+   */
+  private _camelToSnake(str: string) {
+    return str
+      .replace(/[\w]([A-Z])/g, function(m) {
+        return m[0] + '_' + m[1];
+      })
+      .toLowerCase();
+  }
 
   /********************************************************
    * Implementation of specific ODK Rest Functions
    * https://docs.odk-x.org/odk-2-sync-protocol/
-   * TODO - could be made more pure, moving local state management
-   * and variable generation to methods above (maybe when refactor to store)
+   * TODO - remove all local state management to better reflect odk-x sync
    *********************************************************/
   private async getPriviledgesInfo() {
     this.userPriviledges$.next(undefined);
@@ -289,8 +308,34 @@ interface IResTables extends IResBase {
 }
 interface IResTableRows extends IResBase {
   dataETag: string;
-  rows: ITableRow[];
+  rows: IResTableRow[];
   tableUri: string;
+}
+interface IResTableRow {
+  createUser: string;
+  dataETagAtModification: string;
+  deleted: false;
+  filterScope: {
+    defaultAccess: AccessLevel;
+    rowOwner: string;
+    groupReadOnly: BoolString;
+    groupModify: BoolString;
+    groupPrivileged: BoolString;
+  };
+  formId: string;
+  id: string;
+  lastUpdateUser: string;
+  locale: string;
+  orderedColumns: IResTableColumn[];
+  rowETag: string;
+  savepointCreator: string;
+  savepointTimestamp: ISOString;
+  savepointType: Savepoint;
+  selfUri: string;
+}
+interface IResTableColumn {
+  column: string;
+  value: any;
 }
 interface IResAlterRows {
   dataETag: string;
@@ -326,6 +371,7 @@ interface IResSchema extends ITableSchema {
 
 type IResUserPriviledge = IUserPriviledge;
 interface RowList {
-  rows: ITableRow[];
+  // rows not technically partial, but same without selfUri info
+  rows: Partial<IResTableRow>[];
   dataETag: string;
 }

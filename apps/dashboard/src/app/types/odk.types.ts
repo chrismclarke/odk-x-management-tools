@@ -24,28 +24,6 @@ interface ISchemaColumn {
 }
 
 export interface ITableRow {
-  createUser: string;
-  dataETagAtModification: string;
-  deleted: false;
-  filterScope: {
-    defaultAccess: AccessLevel;
-    rowOwner: string;
-    groupReadOnly: BoolString;
-    groupModify: BoolString;
-    groupPrivileged: BoolString;
-  };
-  formId: string;
-  id: string;
-  lastUpdateUser: string;
-  locale: string;
-  orderedColumns: ITableColumn[];
-  rowETag: string;
-  savepointCreator: string;
-  savepointTimestamp: ISOString;
-  savepointType: Savepoint;
-  selfUri: string;
-}
-export interface ITableRowCSVMeta {
   _default_access: AccessLevel;
   _row_owner: string;
   _group_read_only: BoolString;
@@ -59,10 +37,6 @@ export interface ITableRowCSVMeta {
   _savepoint_timestamp: ISOString;
   _savepoint_type: Savepoint;
 }
-interface ITableColumn {
-  column: string;
-  value: any;
-}
 
 export interface IUserPriviledge {
   defaultGroup: Priviledge;
@@ -71,15 +45,15 @@ export interface IUserPriviledge {
   user_id: string;
 }
 
-type BoolString = 'TRUE' | 'FALSE';
+export type BoolString = 'TRUE' | 'FALSE';
 
 // just a reminder type that dates are stored in the format
-type ISOString = string;
+export type ISOString = string;
 
 // TODO - lists not exhaustive
-type AccessLevel = 'FULL';
-type Savepoint = 'COMPLETE';
-type Priviledge =
+export type AccessLevel = 'FULL';
+export type Savepoint = 'COMPLETE';
+export type Priviledge =
   | 'ROLE_SITE_ACCESS_ADMIN'
   | 'AUTH_LDAP'
   | 'ROLE_ADMINISTER_TABLES'

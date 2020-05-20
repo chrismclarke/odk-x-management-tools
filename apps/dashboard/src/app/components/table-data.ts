@@ -40,45 +40,31 @@ import { OdkRestService } from '../services/odkrest.service';
   ]
 })
 export class TableDataComponent {
-  dataSource: MatTableDataSource<any[]>;
+  dataSource: MatTableDataSource<ITableRow>;
   displayedColumns: string[] = [];
   showMeta = true;
   @ViewChild(MatPaginator, { static: true }) paginator: MatPaginator;
   @Input('rows') set rows(rows: ITableRow[]) {
-    this.dataSource = new MatTableDataSource(this.generateDatasource(rows));
+    this.dataSource = new MatTableDataSource(rows);
     this.dataSource.paginator = this.paginator;
     this.displayedColumns = this.generateColumns(rows);
   }
   constructor(public odkRest: OdkRestService) {}
 
-  /**
-   * Convert passed input rows to table datasource,
-   * extracting odk column data and appending metadata
-   */
-  private generateDatasource(rows: ITableRow[]) {
-    console.log('generating data source', rows);
-    const datasource = [];
-    rows.forEach(row => {
-      // take copy for field deletion
-      const r = { ...row };
-      const data: any = {};
-      // assign data fields
-      r.orderedColumns.forEach(el => {
-        const { column, value } = el;
-        data[column] = value;
-      });
-      delete r.orderedColumns;
-      // re-assign meta fields
-      Object.entries(r).forEach(([key, value]) => {
-        data[`_${key}`] = value;
-      });
-      datasource.push(data);
-    });
-    return datasource;
+  private generateColumns(rows: ITableRow[]) {
+    return rows[0] ? this._sortColumns(Object.keys(rows[0])) : [];
   }
 
-  private generateColumns(rows: ITableRow[]) {
-    // TODO: Add toggle/option to include metadata columns in display
-    return rows[0] ? rows[0].orderedColumns.map(c => c.column) : [];
+  /**
+   * Sort data columns alphabetically with metadata keys appearing after rest
+   */
+  private _sortColumns(keys: string[]) {
+    const metaKeys = [];
+    const valKeys = [];
+    keys.forEach(k => {
+      if (k.charAt(0) === '_') metaKeys.push(k);
+      else valKeys.push(k);
+    });
+    return [...valKeys.sort(), ...metaKeys.sort()];
   }
 }

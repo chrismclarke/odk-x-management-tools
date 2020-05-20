@@ -9,5 +9,7 @@ export class ExportService {
 
   exportToCSV(data: any) {
     console.log('exporting to csv', data);
+    const csvData = Papa.unparse(data);
+    console.log('csvData', csvData);
   }
 }
