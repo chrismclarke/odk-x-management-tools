@@ -1,9 +1,7 @@
 {
   "version": 2,
   "functions": {
-    "dist/apps/api/main.js": {
-      "maxDuration": 30
-    }
+    "dist/apps/api/main.js": {}
   },
   "routes": [
     { "src": "/api/(.*)", "dest": "/dist/apps/api/main.js" },
