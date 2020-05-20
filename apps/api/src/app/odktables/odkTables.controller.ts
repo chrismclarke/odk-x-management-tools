@@ -23,7 +23,7 @@ export class OdkTablesController {
   proxy(
     @Req() req: Request,
     @Res() res: Response,
-    @Headers('odkserverurl') odkserverurl,
+    @Headers('odkserverurl') odkserverurl: string,
     @Body() body: any
   ) {
     // url ensured via middleware

@@ -7,7 +7,8 @@ import {
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { OdkTablesController, OdkTablesMiddleware } from './odktables';
+import { OdkTablesMiddleware } from './odktables/odkTables.middleware';
+import { OdkTablesController } from './odktables/odkTables.controller';
 
 @Module({
   imports: [HttpModule],
