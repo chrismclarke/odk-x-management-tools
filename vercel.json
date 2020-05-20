@@ -2,7 +2,7 @@
   "version": 2,
   "functions": {
     "dist/apps/api/main.js": {
-      "runtime": "@now/node"
+      "runtime": "@now/node@1.6.1"
     }
   },
   "routes": [
