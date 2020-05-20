@@ -1,3 +1,14 @@
+<div style="display: flex">
+  <h1 style="flex:1">ODK-X Managment Tool</h1>
+  <span id="appVersion">v{{ appVersion }}</span>
+  <a
+    href="https://github.com/chrismclarke/odk-x-management-tools"
+    target="_blank"
+    rel="noopener noreferrer"
+    >Github</a
+  >
+</div>
+
 <odkxm-server-login></odkxm-server-login>
 <odkxm-app-table-select style="margin-top: 20px"></odkxm-app-table-select>
 <div *ngIf="odkRest.table$ | async">
