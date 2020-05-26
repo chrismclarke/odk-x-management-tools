@@ -17,7 +17,8 @@ import { AppTableSelectComponent } from './app-table-select';
 import { TableDataComponent } from './table-data';
 import {
   TableActionsComponent,
-  TableActionsDialogComponent
+  TableActionsDeleteDialogComponent,
+  TableActionsBackupDialogComponent
 } from './table-actions';
 
 const MAT_COMPONENTS = [
@@ -35,11 +36,15 @@ const CUSTOM_COMPONENTS = [
   AppTableSelectComponent,
   TableDataComponent,
   TableActionsComponent,
-  TableActionsDialogComponent
+  TableActionsDeleteDialogComponent,
+  TableActionsBackupDialogComponent
 ];
 
 @NgModule({
-  entryComponents: [TableActionsDialogComponent],
+  entryComponents: [
+    TableActionsDeleteDialogComponent,
+    TableActionsBackupDialogComponent
+  ],
   imports: [...MAT_COMPONENTS, FormsModule, ReactiveFormsModule, CommonModule],
   exports: [...MAT_COMPONENTS, ...CUSTOM_COMPONENTS],
   declarations: [CUSTOM_COMPONENTS],

@@ -80,16 +80,14 @@ export class OdkRestService {
       this.tableRows$.next(this._convertODKRowsForExport(rows));
     }
   }
-  async backupCurrentTable() {
+  async backupCurrentTable(backupTableId: string) {
     const appId = this.appId$.value;
     const { tableId, schemaETag } = this.table$.value;
     const schema = await this.getDefinition(appId, tableId, schemaETag);
     const { orderedColumns } = schema;
-    // store epoch timestamp as suffix
-    const suffix = new Date().getTime();
     const backupSchema: ITableSchema = {
       schemaETag: `uuid:${UUID().toString()}`,
-      tableId: `${tableId}_${suffix}`,
+      tableId: backupTableId,
       orderedColumns
     };
     const backup = await this.createTable(backupSchema);

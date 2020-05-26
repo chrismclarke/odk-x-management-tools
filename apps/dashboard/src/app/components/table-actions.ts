@@ -1,7 +1,11 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, Inject } from '@angular/core';
 import { ITableMeta } from '../types/odk.types';
 import { OdkRestService } from '../services/odkrest.service';
-import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import {
+  MatDialog,
+  MatDialogRef,
+  MAT_DIALOG_DATA
+} from '@angular/material/dialog';
 import { ExportService } from '../services/export.service';
 
 @Component({
@@ -44,17 +48,26 @@ export class TableActionsComponent {
 
   async backupTable() {
     this.disabled = true;
-    try {
-      await this.odkRest.backupCurrentTable();
-      console.log('backup complete');
-    } catch (error) {
-      console.error('backup error', error);
-    }
-    this.disabled = false;
+    const dialogRef = this.dialog.open(TableActionsBackupDialogComponent, {
+      width: '250px',
+      data: `${this.table.tableId}_${this._generateSuffix()}`
+    });
+
+    dialogRef.afterClosed().subscribe(async backupTableId => {
+      if (backupTableId) {
+        try {
+          await this.odkRest.backupCurrentTable(backupTableId);
+          console.log('backup complete');
+        } catch (error) {
+          console.error('backup error', error);
+        }
+      }
+      this.disabled = false;
+    });
   }
   async promptDelete() {
     this.disabled = true;
-    const dialogRef = this.dialog.open(TableActionsDialogComponent, {
+    const dialogRef = this.dialog.open(TableActionsDeleteDialogComponent, {
       width: '250px'
     });
 
@@ -75,10 +88,21 @@ export class TableActionsComponent {
     this.exportService.exportToCSV(rows, filename);
     this.disabled = false;
   }
+
+  /**
+   * Create suffix in format yyyy-mm-dd (according to locale time)
+   */
+  private _generateSuffix() {
+    return new Date()
+      .toLocaleDateString()
+      .split('/')
+      .reverse()
+      .join('-');
+  }
 }
 
 @Component({
-  selector: 'odkxm-table-actions-dialog',
+  selector: 'odkxm-table-actions-delete-dialog',
   template: `
     <h2 mat-dialog-title>Delete Table?</h2>
     <mat-dialog-content
@@ -91,6 +115,29 @@ export class TableActionsComponent {
     </mat-dialog-actions>
   `
 })
-export class TableActionsDialogComponent {
-  constructor(public dialogRef: MatDialogRef<TableActionsDialogComponent>) {}
+export class TableActionsDeleteDialogComponent {
+  constructor(
+    public dialogRef: MatDialogRef<TableActionsDeleteDialogComponent>
+  ) {}
+}
+
+@Component({
+  selector: 'odkxm-table-actions-backup-dialog',
+  template: `
+    <h2 mat-dialog-title>Backup Table</h2>
+    <mat-form-field>
+      <mat-label>Backup Table ID</mat-label>
+      <input matInput [(ngModel)]="backupTableId" />
+    </mat-form-field>
+    <mat-dialog-actions>
+      <button mat-button mat-dialog-close>Cancel</button>
+      <button mat-button [mat-dialog-close]="backupTableId">Backup</button>
+    </mat-dialog-actions>
+  `
+})
+export class TableActionsBackupDialogComponent {
+  constructor(
+    public dialogRef: MatDialogRef<TableActionsBackupDialogComponent>,
+    @Inject(MAT_DIALOG_DATA) public backupTableId: string
+  ) {}
 }
