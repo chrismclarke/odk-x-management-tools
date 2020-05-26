@@ -8,6 +8,7 @@ import {
 } from '@angular/material/dialog';
 import { ExportService } from '../services/export.service';
 import { environment } from '../../environments/environment';
+import { dateSuffix } from '../utils/date-utils';
 
 @Component({
   selector: 'odkxm-table-actions',
@@ -21,13 +22,17 @@ import { environment } from '../../environments/environment';
       Backup Table
     </button>
     <button mat-raised-button (click)="exportCSV()" [disabled]="disabled">
-      Export CSV
+      Export Table
+    </button>
+    <button mat-raised-button (click)="exportAllCSV()" [disabled]="disabled">
+      Export All Tables
     </button>
     <button
       mat-button
       color="warn"
       (click)="promptDelete()"
       style="margin-left:auto"
+      [disabled]="disabled"
     >
       Delete Table
     </button>
@@ -57,7 +62,7 @@ export class TableActionsComponent {
     this.disabled = true;
     const dialogRef = this.dialog.open(TableActionsBackupDialogComponent, {
       width: '250px',
-      data: `${this.table.tableId}_${this._generateSuffix()}`
+      data: `${this.table.tableId}_${dateSuffix()}`
     });
 
     dialogRef.afterClosed().subscribe(async backupTableId => {
@@ -88,23 +93,24 @@ export class TableActionsComponent {
   async exportCSV() {
     this.disabled = true;
     console.log('exporting csv');
-    const rows = this.odkRest.tableRows$.value;
+    const csvRows = this.odkRest.tableRows$.value;
     const { tableId } = this.odkRest.table$.value;
-    const suffix = new Date().toISOString().substring(0, 10);
-    const filename = `${tableId}_${suffix}.csv`;
-    this.exportService.exportToCSV(rows, filename);
+    const filename = `${tableId}_${dateSuffix()}.csv`;
+    this.exportService.exportToCSV({ csvRows, filename });
     this.disabled = false;
   }
-
-  /**
-   * Create suffix in format yyyy-mm-dd (according to locale time)
-   */
-  private _generateSuffix() {
-    return new Date()
-      .toLocaleDateString()
-      .split('/')
-      .reverse()
-      .join('-');
+  async exportAllCSV() {
+    this.disabled = true;
+    const exportData = await this.odkRest.getAllTableRows();
+    const exports = exportData.map(d => ({
+      csvRows: d.rows,
+      filename: `${d.tableId}.csv`
+    }));
+    await this.exportService.exportToCSVZip(
+      exports,
+      `export_${dateSuffix()}.zip`
+    );
+    this.disabled = false;
   }
 }
 

@@ -120,6 +120,16 @@ export class OdkRestService {
     return this.getTables();
   }
 
+  async getAllTableRows() {
+    const appId = this.appId$.value;
+    const promises = this.allTables$.value.map(async table => {
+      const { tableId, schemaETag } = table;
+      const res = await this.getRows(appId, tableId, schemaETag);
+      return { tableId, rows: this._convertODKRowsForExport(res.rows) };
+    });
+    return Promise.all(promises);
+  }
+
   /**
    * By default ODK rest returns rows with metadata and values defined in
    * a different format to how it is shown and exported in app

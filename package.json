@@ -1,6 +1,6 @@
 {
   "name": "odkxm",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "license": "MIT",
   "scripts": {
     "ng": "ng",
@@ -46,6 +46,7 @@
     "@nrwl/angular": "9.2.4",
     "core-js": "^2.5.4",
     "file-saver": "^2.0.2",
+    "jszip": "^3.4.0",
     "papaparse": "^5.2.0",
     "reflect-metadata": "^0.1.13",
     "rxjs": "~6.5.4",
