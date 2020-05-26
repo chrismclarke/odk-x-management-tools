@@ -159,6 +159,9 @@ export class OdkRestService {
       delete r.dataETagAtModification;
       delete r.filterScope;
       delete r.selfUri;
+      delete r.createUser;
+      delete r.deleted;
+      delete r.lastUpdateUser;
       Object.entries(r).forEach(([key, value]) => {
         data[`_${this._camelToSnake(key)}`] = value;
       });

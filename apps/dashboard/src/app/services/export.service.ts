@@ -11,7 +11,7 @@ export class ExportService {
     const blob = new Blob([csvData], { type: 'text/csv;charset=utf-8;' });
     return saveAs(blob, data.filename);
   }
-  exportToCSVZip(data: IExportData[], filename: string) {
+  async exportToCSVZip(data: IExportData[], filename: string) {
     const zip = new JSZip();
     for (const d of data) {
       const csvData = Papa.unparse(d.csvRows);
