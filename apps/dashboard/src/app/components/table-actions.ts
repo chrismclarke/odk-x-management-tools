@@ -7,11 +7,17 @@ import {
   MAT_DIALOG_DATA
 } from '@angular/material/dialog';
 import { ExportService } from '../services/export.service';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'odkxm-table-actions',
   template: `
-    <button mat-raised-button (click)="backupTable()" [disabled]="disabled">
+    <button
+      *ngIf="!isProduction"
+      mat-raised-button
+      (click)="backupTable()"
+      [disabled]="disabled"
+    >
       Backup Table
     </button>
     <button mat-raised-button (click)="exportCSV()" [disabled]="disabled">
@@ -39,6 +45,7 @@ import { ExportService } from '../services/export.service';
 })
 export class TableActionsComponent {
   @Input() table: ITableMeta;
+  isProduction = environment.production;
   disabled = false;
   constructor(
     private odkRest: OdkRestService,
