@@ -10,7 +10,8 @@ import {
   AccessLevel,
   BoolString,
   ISOString,
-  Savepoint
+  Savepoint,
+  ITableMetaColumnKey
 } from '../types/odk.types';
 
 @Injectable({ providedIn: 'root' })
@@ -137,36 +138,50 @@ export class OdkRestService {
    * - De-nest filterScope and add to metadata prefixed with _group
    * - De-nest orderedColumns and extract to variable values
    * - Delete various fields
+   * - Match metafield order as specified in SyncClient.java
    */
   private _convertODKRowsForExport(rows: IResTableRow[]): ITableRow[] {
     const converted = [];
     rows.forEach(row => {
-      // take copy for field deletion
-      const r: IResTableRow = { ...row };
-      // TODO - types won't be strongly checked, so need to double-check code is correct
       const data: any = {};
-      // assign data fields
-      r.orderedColumns.forEach(el => {
+      // create mapping for all fields as snake case, and un-nest filtersocpe fields
+      const { filterScope } = row;
+      Object.entries(filterScope).forEach(([key, value]) => {
+        row[`_${this._camelToSnake(key)}`] = value;
+      });
+      Object.entries(row).forEach(([key, value]) => {
+        row[`_${this._camelToSnake(key)}`] = value;
+      });
+      const metadataColumns1: ITableMetaColumnKey[] = [
+        '_id',
+        '_form_id',
+        '_locale',
+        '_savepoint_type',
+        '_savepoint_timestamp',
+        '_savepoint_creator',
+        '_deleted',
+        '_data_etag_at_modification'
+      ];
+      // some metadata columns go to front
+      metadataColumns1.forEach(col => (data[col] = row[col]));
+      // main data in centre
+      row.orderedColumns.forEach(el => {
         const { column, value } = el;
         data[column] = value;
       });
-      // assign scope field
-      const { filterScope } = r;
-      Object.entries(filterScope).forEach(([key, value]) => {
-        data[`_${this._camelToSnake(key)}`] = value;
-      });
-      delete r.orderedColumns;
-      delete r.dataETagAtModification;
-      delete r.filterScope;
-      delete r.selfUri;
-      delete r.createUser;
-      delete r.deleted;
-      delete r.lastUpdateUser;
-      Object.entries(r).forEach(([key, value]) => {
-        data[`_${this._camelToSnake(key)}`] = value;
-      });
+      const metadataColumns2: ITableMetaColumnKey[] = [
+        '_default_access',
+        '_group_modify',
+        '_group_privileged',
+        '_group_read_only',
+        '_row_etag',
+        '_row_owner'
+      ];
+      // other metadata columns go to back
+      metadataColumns2.forEach(col => (data[col] = row[col]));
       converted.push(data);
     });
+    console.log('converted', converted);
     return converted;
   }
   /**

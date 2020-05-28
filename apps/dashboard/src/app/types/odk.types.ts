@@ -24,6 +24,8 @@ interface ISchemaColumn {
 }
 
 export interface ITableRow {
+  _deleted: boolean;
+  _data_etag_at_modification:string
   _default_access: AccessLevel;
   _row_owner: string;
   _group_read_only: BoolString;
@@ -37,6 +39,7 @@ export interface ITableRow {
   _savepoint_timestamp: ISOString;
   _savepoint_type: Savepoint;
 }
+export type ITableMetaColumnKey = keyof ITableRow;
 
 export interface IUserPriviledge {
   defaultGroup: Priviledge;
