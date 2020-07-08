@@ -266,6 +266,29 @@ export class OdkRestService {
     return this.get<{ files: IManifestItem[] }>(path);
   }
 
+  /**
+   * Upload App-Level File
+   * @param filepath - relative path on server, e.g. tables/exampleTable/definition.csv
+   */
+  private putFile(
+    filePath: string,
+    fileData: Buffer,
+    contentType: string,
+    odkClientVersion = 2,
+    appId = 'default'
+  ) {
+    // app files and table files have different endpoints
+    return this.post(
+      `${appId}/files/${odkClientVersion}/${filePath}`,
+      fileData,
+      {
+        'content-type': contentType + '; charset=utf-8',
+        accept: contentType,
+        'accept-charset': 'utf-8'
+      }
+    );
+  }
+
   /********************************************************
    * Rest call wrappers
    * Proxied to local server via interceptor
@@ -296,6 +319,27 @@ export class OdkRestService {
       return (
         await this.http
           .put<IAPIResponse>(`/odktables/${path}`, body, { headers })
+          .toPromise()
+      ).data;
+    } catch (error) {
+      return this.handleErr(error);
+    }
+  }
+  private async post<ResponseDataType = any>(
+    path: string,
+    body: any,
+    headers = {}
+  ): Promise<ResponseDataType> {
+    try {
+      const postHeaders = new HttpHeaders({
+        'Content-Type': 'application/json',
+        ...headers
+      });
+      return (
+        await this.http
+          .put<IAPIResponse>(`/odktables/${path}`, body, {
+            headers: postHeaders
+          })
           .toPromise()
       ).data;
     } catch (error) {
