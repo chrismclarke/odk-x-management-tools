@@ -256,6 +256,16 @@ export class OdkRestService {
     return this.delete(path);
   }
 
+  private getAppLevelFileManifest(odkClientVersion = 2) {
+    const path = `default/manifest/${odkClientVersion}`;
+    return this.get<{ files: IManifestItem[] }>(path);
+  }
+
+  private getTableIdFileManifest(tableId: string, odkClientVersion = 2) {
+    const path = `default/manifest/${odkClientVersion}/${tableId}`;
+    return this.get<{ files: IManifestItem[] }>(path);
+  }
+
   /********************************************************
    * Rest call wrappers
    * Proxied to local server via interceptor
@@ -400,4 +410,11 @@ interface RowList {
   // rows not technically partial, but same without selfUri info
   rows: Partial<IResTableRow>[];
   dataETag: string;
+}
+interface IManifestItem {
+  filename: string;
+  contentLength: number;
+  contentType: string;
+  md5hash: string;
+  downloadUrl: string;
 }
