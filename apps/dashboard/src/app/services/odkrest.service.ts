@@ -289,6 +289,14 @@ export class OdkRestService {
     );
   }
 
+  private deleteFile(
+    filePath: string,
+    odkClientVersion = 2,
+    appId = 'default'
+  ) {
+    return this.delete(`${appId}/files/${odkClientVersion}/${filePath}`);
+  }
+
   /********************************************************
    * Rest call wrappers
    * Proxied to local server via interceptor
