@@ -24,13 +24,11 @@ jobs:
         run: |
           yarn install
           npm run build
-      - name: deploy production
+      - name: deploy staging
         uses: amondnet/vercel-action@v19
-        id: vercel-action-production
-        if: github.event_name == 'push'
+        id: vercel-action-staging
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          vercel-args: "--prod "
