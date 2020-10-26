@@ -120,11 +120,15 @@ export class ServerLoginComponent {
     this.storage = shouldRemember ? localStorage : sessionStorage;
     this.setStorage('odkServerUrl', serverUrl);
     this.setStorage('odkToken', btoa(`${username}:${password}`));
-    this.isConnected = await this.odkRest.connect();
-    if (!this.isConnected) {
-      this.credentialsForm.enable();
-      // TODO - create async validator to show error on form
-      // (or handle in other component)
+    try {
+      this.isConnected = await this.odkRest.connect();
+      if (!this.isConnected) {
+        this.credentialsForm.enable();
+        // TODO - create async validator to show error on form
+        // (or handle in other component)
+      }
+    } catch (error) {
+      console.error('could not connect', error.status);
     }
   }
   // TODO - rework for new provider
