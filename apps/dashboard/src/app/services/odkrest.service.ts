@@ -13,6 +13,7 @@ import {
   Savepoint,
   ITableMetaColumnKey
 } from '../types/odk.types';
+import { NotificationService } from './notification.service';
 
 @Injectable({ providedIn: 'root' })
 export class OdkRestService {
@@ -24,7 +25,7 @@ export class OdkRestService {
   tableRows$: BehaviorSubject<ITableRow[]>;
   userPriviledges$: BehaviorSubject<IUserPriviledge>;
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private notifications:NotificationService) {
     this.init();
   }
   /**
@@ -365,12 +366,19 @@ export class OdkRestService {
       return this.handleErr(error);
     }
   }
-  private handleErr(error) {
+  private handleErr(error:any) {
     // TODO - add error handler/notification (or leave to logger interceptor)
     console.error(error);
-    throw new Error(error.message);
-    return null;
+    try {
+      const {status,statusText} = error
+      this.notifications.showErrorMessage(`Request failed with response ${status} - ${statusText}`)
+    } catch (error) {
+      this.notifications.showErrorMessage(error.message)
+    }
+    throw error
+    return null
   }
+  
 }
 
 /********************************************************

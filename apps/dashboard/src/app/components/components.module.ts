@@ -10,6 +10,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
+import {MatSnackBarModule} from '@angular/material/snack-bar'
 
 // Custom Components
 import { ServerLoginComponent } from './server-login';
@@ -28,7 +29,8 @@ const MAT_COMPONENTS = [
   MatInputModule,
   MatPaginatorModule,
   MatSelectModule,
-  MatTableModule
+  MatTableModule,
+  MatSnackBarModule
 ];
 
 const CUSTOM_COMPONENTS = [

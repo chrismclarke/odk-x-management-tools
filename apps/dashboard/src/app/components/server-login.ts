@@ -1,8 +1,8 @@
 import { Component } from '@angular/core';
-import { environment } from '../../environments/environment';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { IStorageKey } from '../types';
 import { OdkRestService } from '../services/odkrest.service';
+import { NotificationService } from '../services/notification.service';
 
 @Component({
   selector: 'odkxm-server-login',
@@ -96,7 +96,7 @@ export class ServerLoginComponent {
   isConnected = false;
   credentialsForm: FormGroup;
   storage: Storage = localStorage;
-  constructor(private odkRest: OdkRestService, private fb: FormBuilder) {
+  constructor(private odkRest: OdkRestService, private fb: FormBuilder, private notifications:NotificationService) {
     const serverUrl = this.getStorage('odkServerUrl');
     const token = this.getStorage('odkToken');
     const { username, password } = this.initializeToken(token);
@@ -122,13 +122,8 @@ export class ServerLoginComponent {
     this.setStorage('odkToken', btoa(`${username}:${password}`));
     try {
       this.isConnected = await this.odkRest.connect();
-      if (!this.isConnected) {
-        this.credentialsForm.enable();
-        // TODO - create async validator to show error on form
-        // (or handle in other component)
-      }
     } catch (error) {
-      console.error('could not connect', error.status);
+      this.credentialsForm.enable();
     }
   }
   // TODO - rework for new provider
