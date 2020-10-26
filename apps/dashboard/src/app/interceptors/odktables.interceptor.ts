@@ -3,7 +3,7 @@ import {
   HttpInterceptor,
   HttpRequest,
   HttpHandler,
-  HttpEvent
+  HttpEvent,
 } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
@@ -28,10 +28,9 @@ export class OdkTablesInterceptor implements HttpInterceptor {
       headers: req.headers,
       setHeaders: {
         odkserverurl,
-        Authorization
-      }
+        Authorization,
+      },
     });
-    console.log('sending req', req, req.body);
     return next.handle(modified);
   }
 

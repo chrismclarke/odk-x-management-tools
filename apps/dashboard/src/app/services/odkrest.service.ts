@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { IAPIResponse } from '@odkxm/api-interfaces';
 import { BehaviorSubject } from 'rxjs';
 import {
@@ -11,7 +11,7 @@ import {
   BoolString,
   ISOString,
   Savepoint,
-  ITableMetaColumnKey
+  ITableMetaColumnKey,
 } from '../types/odk.types';
 import { NotificationService } from './notification.service';
 
@@ -24,8 +24,12 @@ export class OdkRestService {
   table$: BehaviorSubject<ITableMeta>;
   tableRows$: BehaviorSubject<ITableRow[]>;
   userPriviledges$: BehaviorSubject<IUserPriviledge>;
+  fetchLimit = localStorage.getItem('fetchLimit') || '250';
 
-  constructor(private http: HttpClient, private notifications:NotificationService) {
+  constructor(
+    private http: HttpClient,
+    private notifications: NotificationService
+  ) {
     this.init();
   }
   /**
@@ -76,11 +80,35 @@ export class OdkRestService {
     this.table$.next(table);
     this.tableRows$.next([]);
     if (table) {
-      const appId = this.appId$.value;
-      const { tableId, schemaETag } = table;
-      const { rows } = await this.getRows(appId, tableId, schemaETag);
+      const { rows } = await this.getRowsInBatch(table);
       this.tableRows$.next(this._convertODKRowsForExport(rows));
     }
+  }
+  /**
+   * Use paged queries to get all rows and avoid timeout/size issues
+   */
+  async getRowsInBatch(
+    table: ITableMeta,
+    allRows = [],
+    cursor = null
+  ): Promise<IResTableRows> {
+    const { tableId, schemaETag } = table;
+    const params: any = { fetchLimit: this.fetchLimit };
+    if (cursor) {
+      params.cursor = cursor;
+    }
+    const res = await this.getRows(
+      this.appId$.value,
+      tableId,
+      schemaETag,
+      params
+    );
+    const { hasMoreResults, webSafeResumeCursor, rows } = res;
+    allRows = [...allRows, ...rows];
+    if (hasMoreResults) {
+      return this.getRowsInBatch(table, allRows, webSafeResumeCursor);
+    }
+    return { ...res, rows: allRows };
   }
   async backupCurrentTable(backupTableId: string) {
     const appId = this.appId$.value;
@@ -90,13 +118,13 @@ export class OdkRestService {
     const backupSchema: ITableSchema = {
       schemaETag: `uuid:${UUID().toString()}`,
       tableId: backupTableId,
-      orderedColumns
+      orderedColumns,
     };
     const backup = await this.createTable(backupSchema);
     console.log('backup table res', backup);
     // fetch rows again instead of using converted as easier to modify
-    let { rows } = await this.getRows(appId, tableId, schemaETag);
-    rows = rows.map(r => {
+    let { rows } = await this.getRowsInBatch(this.table$.value);
+    rows = rows.map((r) => {
       // selfUri property not supported on put request
       delete r.selfUri;
       r.dataETagAtModification = backup.dataETag;
@@ -124,7 +152,7 @@ export class OdkRestService {
 
   async getAllTableRows() {
     const appId = this.appId$.value;
-    const promises = this.allTables$.value.map(async table => {
+    const promises = this.allTables$.value.map(async (table) => {
       const { tableId, schemaETag } = table;
       const res = await this.getRows(appId, tableId, schemaETag);
       return { tableId, rows: this._convertODKRowsForExport(res.rows) };
@@ -143,7 +171,7 @@ export class OdkRestService {
    */
   private _convertODKRowsForExport(rows: IResTableRow[]): ITableRow[] {
     const converted = [];
-    rows.forEach(row => {
+    rows.forEach((row) => {
       const data: any = {};
       // create mapping for all fields as snake case, and un-nest filtersocpe fields
       const { filterScope } = row;
@@ -161,12 +189,12 @@ export class OdkRestService {
         '_savepoint_timestamp',
         '_savepoint_creator',
         '_deleted',
-        '_data_etag_at_modification'
+        '_data_etag_at_modification',
       ];
       // some metadata columns go to front
-      metadataColumns1.forEach(col => (data[col] = row[col]));
+      metadataColumns1.forEach((col) => (data[col] = row[col]));
       // main data in centre
-      row.orderedColumns.forEach(el => {
+      row.orderedColumns.forEach((el) => {
         const { column, value } = el;
         data[column] = value;
       });
@@ -176,10 +204,10 @@ export class OdkRestService {
         '_group_privileged',
         '_group_read_only',
         '_row_etag',
-        '_row_owner'
+        '_row_owner',
       ];
       // other metadata columns go to back
-      metadataColumns2.forEach(col => (data[col] = row[col]));
+      metadataColumns2.forEach((col) => (data[col] = row[col]));
       converted.push(data);
     });
     console.log('converted', converted);
@@ -191,7 +219,7 @@ export class OdkRestService {
    */
   private _camelToSnake(str: string) {
     return str
-      .replace(/[\w]([A-Z])/g, function(m) {
+      .replace(/[\w]([A-Z])/g, function (m) {
         return m[0] + '_' + m[1];
       })
       .toLowerCase();
@@ -230,9 +258,14 @@ export class OdkRestService {
     const path = `${appId}/tables/${tableId}/ref/${schemaETag}`;
     return this.get<IResSchema>(path);
   }
-  private async getRows(appId: string, tableId: string, schemaETag: string) {
+  private async getRows(
+    appId: string,
+    tableId: string,
+    schemaETag: string,
+    params = {}
+  ) {
     const path = `${appId}/tables/${tableId}/ref/${schemaETag}/rows`;
-    return this.get<IResTableRows>(path);
+    return this.get<IResTableRows>(path, params);
   }
 
   private async createTable(schema: ITableSchema) {
@@ -285,7 +318,7 @@ export class OdkRestService {
       {
         'content-type': contentType + '; charset=utf-8',
         accept: contentType,
-        'accept-charset': 'utf-8'
+        'accept-charset': 'utf-8',
       }
     );
   }
@@ -307,11 +340,14 @@ export class OdkRestService {
    *********************************************************/
 
   private async get<ResponseDataType = any>(
-    path: string
+    path: string,
+    params: { [param: string]: string } = {}
   ): Promise<ResponseDataType> {
     try {
       return (
-        await this.http.get<IAPIResponse>(`/odktables/${path}`).toPromise()
+        await this.http
+          .get<IAPIResponse>(`/odktables/${path}`, { params })
+          .toPromise()
       ).data;
     } catch (error) {
       return this.handleErr(error);
@@ -323,7 +359,7 @@ export class OdkRestService {
   ): Promise<ResponseDataType> {
     try {
       const headers = new HttpHeaders({
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
       });
       return (
         await this.http
@@ -342,12 +378,12 @@ export class OdkRestService {
     try {
       const postHeaders = new HttpHeaders({
         'Content-Type': 'application/json',
-        ...headers
+        ...headers,
       });
       return (
         await this.http
           .put<IAPIResponse>(`/odktables/${path}`, body, {
-            headers: postHeaders
+            headers: postHeaders,
           })
           .toPromise()
       ).data;
@@ -366,19 +402,20 @@ export class OdkRestService {
       return this.handleErr(error);
     }
   }
-  private handleErr(error:any) {
+  private handleErr(error: any) {
     // TODO - add error handler/notification (or leave to logger interceptor)
     console.error(error);
     try {
-      const {status,statusText} = error
-      this.notifications.showErrorMessage(`Request failed with response ${status} - ${statusText}`)
+      const { status, statusText } = error;
+      this.notifications.showErrorMessage(
+        `Request failed with response ${status} - ${statusText}`
+      );
     } catch (error) {
-      this.notifications.showErrorMessage(error.message)
+      this.notifications.showErrorMessage(error.message);
     }
-    throw error
-    return null
+    throw error;
+    return null;
   }
-  
 }
 
 /********************************************************
@@ -388,7 +425,7 @@ export class OdkRestService {
 // Simple implementation of UUIDv4
 // tslint:disable no-bitwise
 function UUID() {
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
     const r = (Math.random() * 16) | 0,
       v = c === 'x' ? r : (r & 0x3) | 0x8;
     return v.toString(16);
