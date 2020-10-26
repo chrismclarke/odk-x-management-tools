@@ -7,7 +7,11 @@ import { Subscription } from 'rxjs';
 @Component({
   selector: 'odkxm-app-table-select',
   template: `
-    <form *ngIf="(odkRest.allAppIds$ | async).length > 0" #f="ngForm">
+    <form
+      *ngIf="(odkRest.allAppIds$ | async).length > 0"
+      #f="ngForm"
+      style="display:flex"
+    >
       <mat-form-field>
         <mat-label>App ID</mat-label>
         <select
@@ -18,7 +22,8 @@ import { Subscription } from 'rxjs';
           <option
             *ngFor="let appId of odkRest.allAppIds$ | async"
             [value]="appId"
-            >{{ appId }}
+          >
+            {{ appId }}
           </option>
         </select>
       </mat-form-field>
@@ -34,9 +39,20 @@ import { Subscription } from 'rxjs';
           <option
             *ngFor="let table of odkRest.allTables$ | async"
             [ngValue]="table"
-            >{{ table.tableId }}
+          >
+            {{ table.tableId }}
           </option>
         </select>
+      </mat-form-field>
+      <mat-form-field style="margin-left:auto">
+        <mat-label>Query Size</mat-label>
+        <input
+          #fetchLimit
+          matNativeControl
+          (change)="odkRest.setFetchLimit(fetchLimit.value)"
+          [value]="odkRest.fetchLimit"
+          mat-input
+        />
       </mat-form-field>
     </form>
   `,
@@ -47,8 +63,8 @@ import { Subscription } from 'rxjs';
         width: 100%;
         margin-right: 10px;
       }
-    `
-  ]
+    `,
+  ],
 })
 export class AppTableSelectComponent implements OnInit, OnDestroy {
   activeTableControl = new FormControl();
@@ -59,7 +75,7 @@ export class AppTableSelectComponent implements OnInit, OnDestroy {
   // Use subscriptions to set form value for table objects
   // (More verbose than simple value async pipe due to need for compareWith fn)
   ngOnInit() {
-    this.table$ = this.odkRest.table$.subscribe(t => {
+    this.table$ = this.odkRest.table$.subscribe((t) => {
       this.activeTableControl.setValue(t);
     });
   }

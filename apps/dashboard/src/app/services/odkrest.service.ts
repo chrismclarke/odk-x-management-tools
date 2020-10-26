@@ -66,6 +66,10 @@ export class OdkRestService {
   disconnect() {
     this.init();
   }
+  setFetchLimit(limit: number) {
+    localStorage.setItem('fetchLimit', `${limit}`);
+    this.fetchLimit = `${limit}`;
+  }
   /**
    * Set the active app id, triggering calls to retrieve
    * table data and user priviledges for the app
