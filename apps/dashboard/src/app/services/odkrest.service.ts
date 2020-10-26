@@ -24,7 +24,7 @@ export class OdkRestService {
   table$: BehaviorSubject<ITableMeta>;
   tableRows$: BehaviorSubject<ITableRow[]>;
   userPriviledges$: BehaviorSubject<IUserPriviledge>;
-  fetchLimit = localStorage.getItem('fetchLimit') || '250';
+  fetchLimit = localStorage.getItem('fetchLimit') || '50';
 
   constructor(
     private http: HttpClient,
