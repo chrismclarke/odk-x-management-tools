@@ -10,7 +10,12 @@ import { MatInputModule } from '@angular/material/input';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
-import {MatSnackBarModule} from '@angular/material/snack-bar'
+import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatSidenavModule } from '@angular/material/sidenav';
+import { MatListModule } from '@angular/material/list';
+import { MatIconModule } from '@angular/material/icon';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatCardModule } from '@angular/material/card';
 
 // Custom Components
 import { ServerLoginComponent } from './server-login';
@@ -19,7 +24,7 @@ import { TableDataComponent } from './table-data';
 import {
   TableActionsComponent,
   TableActionsDeleteDialogComponent,
-  TableActionsBackupDialogComponent
+  TableActionsBackupDialogComponent,
 } from './table-actions';
 
 const MAT_COMPONENTS = [
@@ -30,7 +35,12 @@ const MAT_COMPONENTS = [
   MatPaginatorModule,
   MatSelectModule,
   MatTableModule,
-  MatSnackBarModule
+  MatSnackBarModule,
+  MatSidenavModule,
+  MatListModule,
+  MatIconModule,
+  MatDividerModule,
+  MatCardModule,
 ];
 
 const CUSTOM_COMPONENTS = [
@@ -39,17 +49,17 @@ const CUSTOM_COMPONENTS = [
   TableDataComponent,
   TableActionsComponent,
   TableActionsDeleteDialogComponent,
-  TableActionsBackupDialogComponent
+  TableActionsBackupDialogComponent,
 ];
 
 @NgModule({
   entryComponents: [
     TableActionsDeleteDialogComponent,
-    TableActionsBackupDialogComponent
+    TableActionsBackupDialogComponent,
   ],
   imports: [...MAT_COMPONENTS, FormsModule, ReactiveFormsModule, CommonModule],
   exports: [...MAT_COMPONENTS, ...CUSTOM_COMPONENTS],
   declarations: [CUSTOM_COMPONENTS],
-  providers: []
+  providers: [],
 })
 export class ComponentsModule {}

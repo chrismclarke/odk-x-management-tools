@@ -25,6 +25,7 @@ export class OdkRestService {
   tableRows$: BehaviorSubject<ITableRow[]>;
   userPriviledges$: BehaviorSubject<IUserPriviledge>;
   fetchLimit = localStorage.getItem('fetchLimit') || '50';
+  isConnected: boolean;
 
   constructor(
     private http: HttpClient,
@@ -38,6 +39,7 @@ export class OdkRestService {
    * to allow disconnect reset function
    */
   private init() {
+    this.isConnected = false;
     this.allAppIds$ = new BehaviorSubject([]);
     this.allTables$ = new BehaviorSubject([]);
     this.appId$ = new BehaviorSubject(undefined);
@@ -59,6 +61,7 @@ export class OdkRestService {
     if (appIds) {
       this.allAppIds$.next(appIds);
       this.setActiveAppId(appIds[0]);
+      this.isConnected = true;
       return true;
     }
     return false;

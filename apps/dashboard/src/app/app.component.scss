@@ -1,0 +1,30 @@
+.container {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #eee;
+}
+.sidenav {
+  width: 230px;
+  display: flex;
+  flex-direction: column;
+}
+
+.nav-link.disabled {
+  pointer-events: none;
+  opacity: 0.5;
+}
+.nav-link.active-link {
+  background: rgba(63, 81, 181, 0.15);
+  color: #3f51b5;
+  opacity: 1;
+}
+#appVersion {
+  opacity: 0.5;
+  margin-right: 10px;
+}
+.version-container {
+  margin-top: auto;
+}

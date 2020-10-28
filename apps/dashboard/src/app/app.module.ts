@@ -1,39 +1,40 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { NgModule } from '@angular/core';
-
+import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import {
   OdkTablesInterceptor,
-  ResponseLoggerInterceptor
+  ResponseLoggerInterceptor,
 } from './interceptors/';
-import { HomeComponent } from './pages/home/home.component';
 import { ComponentsModule } from './components/components.module';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { ConnectionComponent, TablesComponent } from './pages';
 
 @NgModule({
-  declarations: [AppComponent, HomeComponent],
+  declarations: [AppComponent, ConnectionComponent, TablesComponent],
   imports: [
     BrowserModule,
     HttpClientModule,
     BrowserAnimationsModule,
     FormsModule,
     ReactiveFormsModule,
-    ComponentsModule
+    ComponentsModule,
+    AppRoutingModule,
   ],
   providers: [
     {
       provide: HTTP_INTERCEPTORS,
       useClass: OdkTablesInterceptor,
-      multi: true
+      multi: true,
     },
     {
       provide: HTTP_INTERCEPTORS,
       useClass: ResponseLoggerInterceptor,
-      multi: true
-    }
+      multi: true,
+    },
   ],
-  bootstrap: [AppComponent]
+  bootstrap: [AppComponent],
 })
 export class AppModule {}
