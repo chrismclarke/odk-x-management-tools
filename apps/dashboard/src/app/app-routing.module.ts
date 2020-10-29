@@ -1,7 +1,6 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { TablesComponent } from './pages';
-import { ConnectionComponent } from './pages/connection/connection.component';
+import { ExportComponent, TablesComponent, ConnectionComponent } from './pages';
 import { IsConnectedGuard } from './guards/isConnected.guard';
 
 export const routes: Routes = [
@@ -22,8 +21,8 @@ export const routes: Routes = [
     canActivate: [IsConnectedGuard],
   },
   {
-    path: '',
-    component: ConnectionComponent,
+    path: 'export',
+    component: ExportComponent,
     data: { menu: { title: 'Export', link: 'export', icon: 'import_export' } },
     canActivate: [IsConnectedGuard],
   },

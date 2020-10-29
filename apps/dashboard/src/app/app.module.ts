@@ -10,10 +10,15 @@ import {
 import { ComponentsModule } from './components/components.module';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { ConnectionComponent, TablesComponent } from './pages';
+import { ConnectionComponent, TablesComponent, ExportComponent } from './pages';
 
 @NgModule({
-  declarations: [AppComponent, ConnectionComponent, TablesComponent],
+  declarations: [
+    AppComponent,
+    ConnectionComponent,
+    TablesComponent,
+    ExportComponent,
+  ],
   imports: [
     BrowserModule,
     HttpClientModule,

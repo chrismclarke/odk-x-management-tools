@@ -11,14 +11,17 @@
   display: flex;
   flex-direction: column;
 }
+.content {
+  padding: 20px;
+}
 
 .nav-link.disabled {
   pointer-events: none;
   opacity: 0.5;
 }
 .nav-link.active-link {
-  background: rgba(63, 81, 181, 0.15);
-  color: #3f51b5;
+  background: rgba(45, 59, 104, 0.82);
+  color: rgba(255, 255, 255, 0.95);
   opacity: 1;
 }
 #appVersion {
