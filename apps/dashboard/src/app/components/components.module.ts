@@ -28,6 +28,7 @@ import {
   TableActionsDeleteDialogComponent,
   TableActionsBackupDialogComponent,
 } from './table-actions';
+import { TableRowEditorDialogComponent } from './table-row-editor';
 
 const MAT_COMPONENTS = [
   MatButtonModule,
@@ -53,12 +54,15 @@ const CUSTOM_COMPONENTS = [
   TableActionsComponent,
   TableActionsDeleteDialogComponent,
   TableActionsBackupDialogComponent,
+  TableRowEditorDialogComponent,
 ];
 
 @NgModule({
   entryComponents: [
     TableActionsDeleteDialogComponent,
     TableActionsBackupDialogComponent,
+    TableRowEditorDialogComponent,
+    TableRowEditorDialogComponent,
   ],
   imports: [
     ...MAT_COMPONENTS,
