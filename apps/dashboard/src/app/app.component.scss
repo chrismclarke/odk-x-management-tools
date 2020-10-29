@@ -13,6 +13,10 @@
 }
 .content {
   padding: 20px;
+  display: flex;
+  flex-direction: column;
+  margin-left: 230px;
+  height: calc(100% - 40px);
 }
 
 .nav-link.disabled {

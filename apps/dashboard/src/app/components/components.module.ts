@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { AgGridModule } from 'ag-grid-angular';
 
 // Material Components
 import { MatButtonModule } from '@angular/material/button';
@@ -59,7 +60,13 @@ const CUSTOM_COMPONENTS = [
     TableActionsDeleteDialogComponent,
     TableActionsBackupDialogComponent,
   ],
-  imports: [...MAT_COMPONENTS, FormsModule, ReactiveFormsModule, CommonModule],
+  imports: [
+    ...MAT_COMPONENTS,
+    FormsModule,
+    ReactiveFormsModule,
+    CommonModule,
+    AgGridModule.withComponents([]),
+  ],
   exports: [...MAT_COMPONENTS, ...CUSTOM_COMPONENTS],
   declarations: [CUSTOM_COMPONENTS],
   providers: [],

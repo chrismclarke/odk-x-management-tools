@@ -1,5 +1,9 @@
-<h3>Tables</h3>
-<odkxm-app-table-select style="margin-top: 20px"></odkxm-app-table-select>
-<div *ngIf="odkRest.table$ | async">
-  <odkxm-table-data [rows]="odkRest.tableRows$ | async"></odkxm-table-data>
+<div class="page">
+  <h3>Tables</h3>
+  <odkxm-app-table-select style="margin-top: 20px"></odkxm-app-table-select>
+  <odkxm-table-data
+    *ngIf="odkRest.table$ | async"
+    [rows]="odkRest.tableRows$ | async"
+    style="display: block; flex: 1"
+  ></odkxm-table-data>
 </div>
