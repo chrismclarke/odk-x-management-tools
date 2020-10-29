@@ -10,7 +10,7 @@ import { Subscription } from 'rxjs';
     <form
       *ngIf="(odkRest.allAppIds$ | async).length > 0"
       #f="ngForm"
-      style="display:flex"
+      style="display:flex; "
     >
       <mat-form-field>
         <mat-label>App ID</mat-label>
@@ -44,16 +44,27 @@ import { Subscription } from 'rxjs';
           </option>
         </select>
       </mat-form-field>
-      <mat-form-field style="margin-left:auto">
-        <mat-label>Query Size</mat-label>
-        <input
-          #fetchLimit
-          matNativeControl
-          (change)="odkRest.setFetchLimit(fetchLimit.value)"
-          [value]="odkRest.fetchLimit"
-          mat-input
-        />
-      </mat-form-field>
+      <div style="position:relative; margin-left:auto">
+        <mat-form-field>
+          <mat-label>Query Size</mat-label>
+          <input
+            #fetchLimit
+            matNativeControl
+            (change)="odkRest.setFetchLimit(fetchLimit.value)"
+            [value]="odkRest.fetchLimit"
+            mat-input
+            aria-label="Server requests will be split to avoid size or timeout restrictions. Specify maximum rows per request"
+          />
+        </mat-form-field>
+        <button
+          mat-icon-button
+          matTooltip="Server requests will be split to avoid size or timeout restrictions. Specify maximum rows per request"
+          matTooltipClass="tooltip"
+          aria-label="Button to show information about Query Size input"
+        >
+          <mat-icon>info</mat-icon>
+        </button>
+      </div>
     </form>
   `,
   styles: [
