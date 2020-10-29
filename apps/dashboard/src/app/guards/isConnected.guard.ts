@@ -14,7 +14,7 @@ export class IsConnectedGuard implements CanActivate {
     next: ActivatedRouteSnapshot,
     state: RouterStateSnapshot
   ): boolean {
-    if (this.odkRestService.isConnected) {
+    if (this.odkRestService.isConnected.value === true) {
       return true;
     } else {
       this.router.navigate(['/connection']);

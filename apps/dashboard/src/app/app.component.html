@@ -26,7 +26,10 @@
       </div>
     </div>
   </mat-sidenav>
-  <mat-sidenav-content class="content">
-    <router-outlet #outlet id="routerOutlet"></router-outlet>
+  <mat-sidenav-content
+    class="content"
+    [@routeAnimations]="getAnimation(outlet)"
+  >
+    <router-outlet #outlet="outlet" id="routerOutlet"></router-outlet>
   </mat-sidenav-content>
 </mat-sidenav-container>

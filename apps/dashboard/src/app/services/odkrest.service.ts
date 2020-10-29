@@ -25,7 +25,8 @@ export class OdkRestService {
   tableRows$: BehaviorSubject<ITableRow[]>;
   userPriviledges$: BehaviorSubject<IUserPriviledge>;
   fetchLimit = localStorage.getItem('fetchLimit') || '50';
-  isConnected: boolean;
+  isConnected: BehaviorSubject<boolean>;
+  private _cache = { tableRows: {} };
 
   constructor(
     private http: HttpClient,
@@ -39,7 +40,7 @@ export class OdkRestService {
    * to allow disconnect reset function
    */
   private init() {
-    this.isConnected = false;
+    this.isConnected = new BehaviorSubject(false);
     this.allAppIds$ = new BehaviorSubject([]);
     this.allTables$ = new BehaviorSubject([]);
     this.appId$ = new BehaviorSubject(undefined);
@@ -61,10 +62,8 @@ export class OdkRestService {
     if (appIds) {
       this.allAppIds$.next(appIds);
       this.setActiveAppId(appIds[0]);
-      this.isConnected = true;
-      return true;
+      this.isConnected.next(true);
     }
-    return false;
   }
   disconnect() {
     this.init();
@@ -87,8 +86,15 @@ export class OdkRestService {
     this.table$.next(table);
     this.tableRows$.next([]);
     if (table) {
-      const { rows } = await this.getRowsInBatch(table);
-      this.tableRows$.next(this._convertODKRowsForExport(rows));
+      const { tableId } = table;
+      if (this._cache.tableRows[tableId]) {
+        return this.tableRows$.next(this._cache.tableRows[tableId]);
+      } else {
+        const { rows } = await this.getRowsInBatch(table);
+        const tableRows = this._convertODKRowsForExport(rows);
+        this._cache.tableRows[tableId] = tableRows;
+        this.tableRows$.next(tableRows);
+      }
     }
   }
   /**

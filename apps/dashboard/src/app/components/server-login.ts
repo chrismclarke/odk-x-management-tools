@@ -1,8 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, EventEmitter, Output } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { IStorageKey } from '../types';
 import { OdkRestService } from '../services/odkrest.service';
-import { NotificationService } from '../services/notification.service';
 
 @Component({
   selector: 'odkxm-server-login',
@@ -13,7 +12,10 @@ import { NotificationService } from '../services/notification.service';
         [formGroup]="credentialsForm"
         (ngSubmit)="connect(credentialsForm.value)"
       >
-        <div class="form-fields-container">
+        <fieldset
+          class="form-fields-container"
+          [disabled]="(odkRest.isConnected | async) === true"
+        >
           <div>
             <mat-form-field style="max-width:200px">
               <mat-label>Server URL</mat-label>
@@ -50,10 +52,10 @@ import { NotificationService } from '../services/notification.service';
           <mat-checkbox formControlName="shouldRemember" color="primary">
             Remember Me
           </mat-checkbox>
-        </div>
+        </fieldset>
         <div class="form-buttons-container">
           <button
-            *ngIf="!isConnected"
+            *ngIf="(odkRest.isConnected | async) !== true"
             mat-stroked-button
             color="primary"
             type="submit"
@@ -62,7 +64,7 @@ import { NotificationService } from '../services/notification.service';
             Connect
           </button>
           <button
-            *ngIf="isConnected"
+            *ngIf="(odkRest.isConnected | async) === true"
             mat-stroked-button
             color="primary"
             (click)="disconnect()"
@@ -87,6 +89,9 @@ import { NotificationService } from '../services/notification.service';
       .form-buttons-container {
         margin-left: 20px;
       }
+      fieldset {
+        border: none;
+      }
       mat-form-field {
         max-width: 120px;
         width: 100%;
@@ -96,14 +101,10 @@ import { NotificationService } from '../services/notification.service';
   ],
 })
 export class ServerLoginComponent {
-  isConnected = false;
+  @Output() connectionChange = new EventEmitter<boolean>();
   credentialsForm: FormGroup;
   storage: Storage = localStorage;
-  constructor(
-    private odkRest: OdkRestService,
-    private fb: FormBuilder,
-    private notifications: NotificationService
-  ) {
+  constructor(public odkRest: OdkRestService, private fb: FormBuilder) {
     const serverUrl = this.getStorage('odkServerUrl');
     const token = this.getStorage('odkToken');
     const { username, password } = this.initializeToken(token);
@@ -128,7 +129,8 @@ export class ServerLoginComponent {
     this.setStorage('odkServerUrl', serverUrl);
     this.setStorage('odkToken', btoa(`${username}:${password}`));
     try {
-      this.isConnected = await this.odkRest.connect();
+      await this.odkRest.connect();
+      this.connectionChange.next(this.odkRest.isConnected.value);
     } catch (error) {
       this.credentialsForm.enable();
     }
@@ -138,8 +140,8 @@ export class ServerLoginComponent {
     this.storage.removeItem('odkToken');
     this.credentialsForm.reset();
     this.credentialsForm.enable();
-    this.isConnected = false;
     this.odkRest.disconnect();
+    this.connectionChange.next(this.odkRest.isConnected.value);
   }
 
   private createForm(model: ICredentialsFormModel): FormGroup {
