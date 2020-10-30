@@ -130,6 +130,7 @@ export class ServerLoginComponent {
     this.setStorage('odkToken', btoa(`${username}:${password}`));
     try {
       await this.odkRest.connect();
+      this.odkRest.serverUrl = serverUrl;
       this.connectionChange.next(this.odkRest.isConnected.value);
     } catch (error) {
       this.credentialsForm.enable();

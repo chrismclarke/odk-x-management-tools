@@ -30,6 +30,11 @@
     class="content"
     [@routeAnimations]="getAnimation(outlet)"
   >
+    <div class="app-header">
+      <h2>{{ getTitle(outlet) }}</h2>
+      <div style="opacity: 0.5">{{ odkRestService.serverUrl }}</div>
+    </div>
+
     <router-outlet #outlet="outlet" id="routerOutlet"></router-outlet>
   </mat-sidenav-content>
 </mat-sidenav-container>

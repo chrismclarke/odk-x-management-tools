@@ -25,6 +25,9 @@ export class AppComponent {
   getAnimation(outlet: RouterOutlet) {
     return outlet?.activatedRouteData?.menu?.title;
   }
+  getTitle(outlet: RouterOutlet) {
+    return outlet?.activatedRouteData?.menu?.title || '';
+  }
 }
 interface IPage {
   title: string;
