@@ -1,21 +1,23 @@
 import { Injectable } from '@angular/core';
-import {MatSnackBar, MatSnackBarRef, TextOnlySnackBar} from '@angular/material/snack-bar';
+import {
+  MatSnackBar,
+  MatSnackBarRef,
+  TextOnlySnackBar,
+} from '@angular/material/snack-bar';
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class NotificationService {
-  snackBarRef:MatSnackBarRef<TextOnlySnackBar>
-  constructor(private snackBar:MatSnackBar) { }
+  snackBarRef: MatSnackBarRef<TextOnlySnackBar>;
+  constructor(private snackBar: MatSnackBar) {}
 
-  showErrorMessage(message:string){
-    if(this.snackBarRef){
-      this.snackBarRef.dismiss()
+  showMessage(message: string, type: 'success' | 'error' | 'info' = 'info') {
+    if (this.snackBarRef) {
+      this.snackBarRef.dismiss();
     }
-   this.snackBarRef = this.snackBar.open(message,'Close',{
-     panelClass:'notification-error'
+    this.snackBarRef = this.snackBar.open(message, 'Close', {
+      panelClass: `notification-${type}`,
     });
-    
-
   }
 }

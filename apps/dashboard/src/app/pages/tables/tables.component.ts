@@ -5,6 +5,7 @@ import {
   ITableRowEditorData,
   TableRowEditorDialogComponent,
 } from '../../components/table-row-editor';
+import { NotificationService } from '../../services/notification.service';
 import { OdkService } from '../../services/odk';
 import { ITableRow } from '../../types/odk.types';
 
@@ -19,14 +20,29 @@ export class TablesComponent {
     '=1': '1 Update',
     other: '# Updates',
   };
-  constructor(public odkService: OdkService, private dialog: MatDialog) {}
+  constructor(
+    public odkService: OdkService,
+    private notifications: NotificationService
+  ) {}
   rowUpdates: ITableRow[] = [];
   updatesProcessing = false;
 
   async processRowUpdates() {
     this.updatesProcessing = true;
     console.log('processing row updates', this.rowUpdates);
-    await this.odkService.updateRows(this.rowUpdates);
+    const res = await this.odkService.updateRows(this.rowUpdates);
+    const outcomes = {};
+    for (const row of res.rows) {
+      if (!outcomes[row.outcome]) {
+        outcomes[row.outcome] = 0;
+      }
+      outcomes[row.outcome]++;
+    }
+    const messages = Object.entries(outcomes).map(
+      ([outcome, count]) => `Row Updates - ${outcome} (${count})`
+    );
+    this.notifications.showMessage(messages.join(', '));
+    this.odkService.refreshActiveTable();
   }
 
   handleTableEditsChange(changes: ITableEdit[]) {
