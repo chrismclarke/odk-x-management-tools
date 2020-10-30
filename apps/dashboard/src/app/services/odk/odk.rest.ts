@@ -6,13 +6,18 @@ import http from './http';
  * NOTE - should be kept in sync odkxm project
  */
 class OdkRestApi {
-  public appId = 'default';
+  public appId = '';
   constructor() {}
 
   /********************************************************
    * Implementation of specific ODK Rest Functions
    * https://docs.odk-x.org/odk-2-sync-protocol/
    *********************************************************/
+  getAppNames() {
+    const path = '';
+    return http.get<string[]>(path);
+  }
+
   getPriviledgesInfo() {
     const path = `${this.appId}/privilegesInfo`;
     return http.get<IODK.IResUserPriviledge>(path);
@@ -25,9 +30,9 @@ class OdkRestApi {
     const path = `${this.appId}/tables/${tableId}/ref/${schemaETag}`;
     return http.get<IODK.IResSchema>(path);
   }
-  getRows(tableId: string, schemaETag: string) {
+  getRows(tableId: string, schemaETag: string, params = {}) {
     const path = `${this.appId}/tables/${tableId}/ref/${schemaETag}/rows`;
-    return http.get<IODK.IResTableRows>(path);
+    return http.get<IODK.IResTableRows>(path, { params });
   }
 
   createTable(schema: IODK.ITableSchema) {
@@ -38,7 +43,7 @@ class OdkRestApi {
 
   alterRows(tableId: string, schemaETag: string, rows: IODK.IUploadRowList) {
     const path = `${this.appId}/tables/${tableId}/ref/${schemaETag}/rows`;
-    return http.put(path, rows);
+    return http.put<IODK.IResAlterRows>(path, rows);
   }
 
   deleteTable(tableId: string, schemaETag: string) {

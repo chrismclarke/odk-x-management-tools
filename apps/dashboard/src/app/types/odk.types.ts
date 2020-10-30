@@ -66,12 +66,9 @@ export interface IUploadTableRow {
   formId: string;
   locale: string;
   savepointType: Savepoint;
-  savepointTimestamp: string;
+  savepointTimestamp: ISOString;
   savepointCreator: string;
-  orderedColumns: {
-    column: string;
-    value: string;
-  }[];
+  orderedColumns: IResTableColumn[];
   id: string;
   filterScope: {
     defaultAccess: AccessLevel;
@@ -80,6 +77,12 @@ export interface IUploadTableRow {
     groupModify: BoolString;
     groupPrivileged: BoolString;
   };
+}
+export interface IResTableRow extends IUploadTableRow {
+  createUser: string;
+  dataETagAtModification: string;
+  lastUpdateUser: string;
+  selfUri: string;
 }
 
 export type ITableMetaColumnKey = keyof ITableRow;
@@ -129,33 +132,12 @@ export interface IResTableRows extends IResBase {
   rows: IResTableRow[];
   tableUri: string;
 }
-export interface IResTableRow {
-  createUser: string;
-  dataETagAtModification: string;
-  deleted: false;
-  filterScope: {
-    defaultAccess: AccessLevel;
-    rowOwner: string;
-    groupReadOnly: BoolString;
-    groupModify: BoolString;
-    groupPrivileged: BoolString;
-  };
-  formId: string;
-  id: string;
-  lastUpdateUser: string;
-  locale: string;
-  orderedColumns: IResTableColumn[];
-  rowETag: string;
-  savepointCreator: string;
-  savepointTimestamp: ISOString;
-  savepointType: Savepoint;
-  selfUri: string;
-}
-interface IResTableColumn {
+
+export interface IResTableColumn {
   column: string;
   value: any;
 }
-interface IResAlterRows {
+export interface IResAlterRows {
   dataETag: string;
   rows: ITableRowAltered[];
   tableUri: string;

@@ -18,14 +18,15 @@ export function convertODKRowsForExport(
 ): IODK.ITableRow[] {
   const converted = [];
   rows.forEach((row) => {
+    const r = { ...row };
     const data: any = {};
     // create mapping for all fields as snake case, and un-nest filtersocpe fields
-    const { filterScope } = row;
+    const { filterScope } = r;
     Object.entries(filterScope).forEach(([key, value]) => {
-      row[`_${camelToSnake(key)}`] = value;
+      r[`_${camelToSnake(key)}`] = value;
     });
-    Object.entries(row).forEach(([key, value]) => {
-      row[`_${camelToSnake(key)}`] = value;
+    Object.entries(r).forEach(([key, value]) => {
+      r[`_${camelToSnake(key)}`] = value;
     });
     const metadataColumns1: IODK.ITableMetaColumnKey[] = [
       '_id',
@@ -38,9 +39,9 @@ export function convertODKRowsForExport(
       '_data_etag_at_modification',
     ];
     // some metadata columns go to front
-    metadataColumns1.forEach((col) => (data[col] = row[col]));
+    metadataColumns1.forEach((col) => (data[col] = r[col]));
     // main data in centre
-    row.orderedColumns.forEach((el) => {
+    r.orderedColumns.forEach((el) => {
       const { column, value } = el;
       data[column] = value;
     });
@@ -53,10 +54,9 @@ export function convertODKRowsForExport(
       '_row_owner',
     ];
     // other metadata columns go to back
-    metadataColumns2.forEach((col) => (data[col] = row[col]));
+    metadataColumns2.forEach((col) => (data[col] = r[col]));
     converted.push(data);
   });
-  console.log('converted', converted);
   return converted;
 }
 

@@ -1,4 +1,5 @@
-import axios, { AxiosResponse, AxiosError, AxiosRequestConfig } from 'axios';
+import axios, { AxiosRequestConfig, AxiosError } from 'axios';
+import { IStorageKey } from '../../types';
 
 /**
  * Use interceptor to append correct url prefix and auth headers
@@ -7,8 +8,8 @@ axios.interceptors.request.use(
   (config) => {
     const { url } = config;
     config.url = `/api/odktables/${url}`;
-    const odkserverurl = localStorage.getItem('odkServerUrl');
-    const Authorization = `basic ${localStorage.getItem('odkToken')}`;
+    const odkserverurl = getStorage('odkServerUrl');
+    const Authorization = `basic ${getStorage('odkToken')}`;
     config.headers = { ...config.headers, Authorization, odkserverurl };
     return config;
   },
@@ -16,79 +17,78 @@ axios.interceptors.request.use(
     return Promise.reject(error);
   }
 );
+/**
+ * Use interceptor to return nested data object on successful response
+ * and handle errors
+ */
+axios.interceptors.response.use(
+  function (response) {
+    const { data } = response;
+    return data.data || data;
+  },
+  function (err) {
+    return handleError(err);
+  }
+);
+
+// Depending on whether data is persisted, may use local storage or session storage
+function getStorage(key: IStorageKey): string | undefined {
+  return localStorage.getItem(key)
+    ? localStorage.getItem(key)
+    : sessionStorage.getItem(key);
+}
 
 /**
  * Base rest methods using axios
  */
-async function get<T = any>(endpoint: string, config: AxiosRequestConfig = {}) {
-  return axios
-    .get(endpoint, { ...config })
-    .then((res) => handleRes<T>(res))
-    .catch((err) => handleErr(err));
+async function get<T = any>(
+  endpoint: string,
+  config: AxiosRequestConfig = {}
+): Promise<T> {
+  return axios.get(endpoint, { ...config });
 }
 
-async function post<T = any>(endpoint: string, data: any, headers = {}) {
-  return axios
-    .post(endpoint, data, {
-      headers: {
-        ...headers,
-        'X-OpenDataKit-Version': '2.0',
-        // set max limits for posting size
-        maxContentLength: 100000000,
-        maxBodyLength: 1000000000,
-      },
-    })
-    .then((res) => handleRes<T>(res))
-    .catch((err) => handleErr(err));
-}
-async function put<T = any>(endpoint: string, data: any, headers = {}) {
-  return axios
-    .put(endpoint, data, {
-      headers: { ...headers, 'X-OpenDataKit-Version': '2.0' },
+async function post<T = any>(
+  endpoint: string,
+  data: any,
+  headers = {}
+): Promise<T> {
+  return axios.post(endpoint, data, {
+    headers: {
+      ...headers,
+      'X-OpenDataKit-Version': '2.0',
       // set max limits for posting size
       maxContentLength: 100000000,
-    })
-    .then((res) => handleRes<T>(res))
-    .catch((err) => handleErr(err));
+      maxBodyLength: 1000000000,
+    },
+  });
 }
-async function del<T = any>(endpoint: string) {
-  return axios
-    .delete(endpoint)
-    .then((res) => handleRes<T>(res))
-    .catch((err) => handleErr(err));
+async function put<T = any>(
+  endpoint: string,
+  data: any,
+  headers = {}
+): Promise<T> {
+  return axios.put(endpoint, data, {
+    headers: { ...headers, 'X-OpenDataKit-Version': '2.0' },
+    // set max limits for posting size
+    maxContentLength: 100000000,
+  });
+}
+async function del<T = any>(endpoint: string): Promise<T> {
+  return axios.delete(endpoint);
 }
 
-function handleRes<T>(res: AxiosResponse) {
-  console.log(`[${res.status}][${res.request.method}]`, res.request.path);
-  if (res.data.hasMoreResults) {
-    throw new Error(
-      'Batch requests not currently supported, res has more results'
-    );
+/**
+ * Axios returns full request and response objects. Log what is likely to be most relevant
+ */
+function handleError(err: AxiosError) {
+  if (err.isAxiosError) {
+    const { request, response } = err;
+    console.error(response.data);
   }
-  return res.data as T;
-}
-function handleErr<T = any>(err: AxiosError): T {
-  if (err.toJSON) {
-    const { message } = err.toJSON() as Error;
-    console.log(message);
-  }
-  if (err.message) {
-    console.log(err.message);
-  }
-  if (err.code) {
-    const e = err as any; // possible network error instead of axios
-    console.log(`[${e.code}][${e.hostname}]`);
-  } else if (err.response) {
-    console.log(
-      `[${err.response.status}][${err.request.method}]`,
-      err.request.path
-    );
-    console.log(err.response.data);
-  } else {
-    console.log('err', Object.keys(err));
-  }
-
-  throw new Error('request failed, see logs for details');
+  return Promise.reject(
+    `Request failed, see logs in developer console for more information`
+  );
 }
 
 export default { get, post, del, put };
