@@ -38,7 +38,12 @@ export class OdkService {
     this.table$ = new BehaviorSubject(undefined);
     this.tableRows$ = new BehaviorSubject(undefined);
     this.userPriviledges$ = new BehaviorSubject(undefined);
-    this.odkRest = new OdkRestService();
+    this.odkRest = new OdkRestService((err) => {
+      this.notifications.showMessage(
+        `${err.message} \r\n See console for more info`,
+        'error'
+      );
+    });
   }
 
   /********************************************************
