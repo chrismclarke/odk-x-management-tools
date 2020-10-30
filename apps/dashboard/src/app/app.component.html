@@ -1,1 +1,40 @@
-<odkxm-home></odkxm-home>
+<mat-sidenav-container class="container">
+  <mat-sidenav class="sidenav" mode="side" opened>
+    <div style="height: 100%; display: flex; flex-direction: column">
+      <h1 class="padding" style="font-weight: 200">ODK-X Management Tool</h1>
+      <mat-divider></mat-divider>
+      <mat-nav-list style="margin-top: 1em">
+        <mat-list-item
+          *ngFor="let page of pages"
+          [routerLink]="page.link"
+          routerLinkActive="active-link"
+          class="nav-link"
+          [class.disabled]="!odkService.isConnected"
+        >
+          <mat-icon matListIcon>{{ page.icon }}</mat-icon>
+          <span>{{ page.title }}</span>
+        </mat-list-item>
+      </mat-nav-list>
+      <div class="version-container padding">
+        <span id="appVersion">v{{ appVersion }}</span>
+        <a
+          href="https://github.com/chrismclarke/odk-x-management-tools"
+          target="_blank"
+          rel="noopener noreferrer"
+          >Github</a
+        >
+      </div>
+    </div>
+  </mat-sidenav>
+  <mat-sidenav-content
+    class="content"
+    [@routeAnimations]="getAnimation(outlet)"
+  >
+    <div class="app-header">
+      <h2>{{ getTitle(outlet) }}</h2>
+      <div style="opacity: 0.5">{{ odkService.serverUrl }}</div>
+    </div>
+
+    <router-outlet #outlet="outlet" id="routerOutlet"></router-outlet>
+  </mat-sidenav-content>
+</mat-sidenav-container>

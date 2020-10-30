@@ -1,0 +1,37 @@
+@import '~@angular/material/theming';
+@include mat-core();
+// see https://material.angular.io/guide/theming
+
+// c2dev/default theme
+$c2dev-app-primary: mat-palette($mat-blue-grey);
+$c2dev-app-accent: mat-palette($mat-amber, A100, A50, A200);
+$c2dev-theme: mat-light-theme($c2dev-app-primary, $c2dev-app-accent);
+
+// Use a mixin to create a class that can be applied to any other components
+@mixin custom-component-mixin($theme) {
+  // Extract the palettes you need from the theme definition.
+  $primary: map-get($theme, primary);
+  $accent: map-get($theme, accent);
+  .primary {
+    background: white !important;
+    color: mat-color($primary) !important;
+  }
+  .primary-inverted {
+    // Use mat-color to extract individual colors from a palette.
+    background: mat-color($primary) !important;
+    color: white !important;
+  }
+  .border-primary {
+    border: 2px solid mat-color($primary);
+  }
+}
+@include angular-material-theme($c2dev-theme);
+// specify classes to trigger different themes
+.theme-default {
+  @include angular-material-theme($c2dev-theme);
+  @include custom-component-mixin($c2dev-theme);
+}
+.theme-c2dev {
+  @include angular-material-theme($c2dev-theme);
+  @include custom-component-mixin($c2dev-theme);
+}

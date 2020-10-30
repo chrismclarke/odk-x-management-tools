@@ -1,10 +1,10 @@
 import { Component, Input, Inject } from '@angular/core';
 import { ITableMeta } from '../types/odk.types';
-import { OdkRestService } from '../services/odkrest.service';
+import { OdkService } from '../services/odk';
 import {
   MatDialog,
   MatDialogRef,
-  MAT_DIALOG_DATA
+  MAT_DIALOG_DATA,
 } from '@angular/material/dialog';
 import { ExportService } from '../services/export.service';
 import { environment } from '../../environments/environment';
@@ -45,15 +45,15 @@ import { dateSuffix } from '../utils/date-utils';
       button {
         margin-right: 10px;
       }
-    `
-  ]
+    `,
+  ],
 })
 export class TableActionsComponent {
   @Input() table: ITableMeta;
   isProduction = environment.production;
   disabled = false;
   constructor(
-    private odkRest: OdkRestService,
+    private odkService: OdkService,
     public dialog: MatDialog,
     public exportService: ExportService
   ) {}
@@ -62,13 +62,13 @@ export class TableActionsComponent {
     this.disabled = true;
     const dialogRef = this.dialog.open(TableActionsBackupDialogComponent, {
       width: '250px',
-      data: `${this.table.tableId}_${dateSuffix()}`
+      data: `${this.table.tableId}_${dateSuffix()}`,
     });
 
-    dialogRef.afterClosed().subscribe(async backupTableId => {
+    dialogRef.afterClosed().subscribe(async (backupTableId) => {
       if (backupTableId) {
         try {
-          await this.odkRest.backupCurrentTable(backupTableId);
+          await this.odkService.backupCurrentTable(backupTableId);
           console.log('backup complete');
         } catch (error) {
           console.error('backup error', error);
@@ -80,12 +80,12 @@ export class TableActionsComponent {
   async promptDelete() {
     this.disabled = true;
     const dialogRef = this.dialog.open(TableActionsDeleteDialogComponent, {
-      width: '250px'
+      width: '250px',
     });
 
-    dialogRef.afterClosed().subscribe(async shouldDelete => {
+    dialogRef.afterClosed().subscribe(async (shouldDelete) => {
       if (shouldDelete) {
-        await this.odkRest.deleteCurrentTable();
+        await this.odkService.deleteCurrentTable();
       }
       this.disabled = false;
     });
@@ -93,18 +93,18 @@ export class TableActionsComponent {
   async exportCSV() {
     this.disabled = true;
     console.log('exporting csv');
-    const csvRows = this.odkRest.tableRows$.value;
-    const { tableId } = this.odkRest.table$.value;
+    const csvRows = this.odkService.tableRows$.value;
+    const { tableId } = this.odkService.table$.value;
     const filename = `${tableId}_${dateSuffix()}.csv`;
     this.exportService.exportToCSV({ csvRows, filename });
     this.disabled = false;
   }
   async exportAllCSV() {
     this.disabled = true;
-    const exportData = await this.odkRest.getAllTableRows();
-    const exports = exportData.map(d => ({
+    const exportData = await this.odkService.getAllTableRows();
+    const exports = exportData.map((d) => ({
       csvRows: d.rows,
-      filename: `${d.tableId}.csv`
+      filename: `${d.tableId}.csv`,
     }));
     await this.exportService.exportToCSVZip(
       exports,
@@ -126,7 +126,7 @@ export class TableActionsComponent {
       <button mat-button mat-dialog-close>Cancel</button>
       <button mat-button [mat-dialog-close]="true">Delete</button>
     </mat-dialog-actions>
-  `
+  `,
 })
 export class TableActionsDeleteDialogComponent {
   constructor(
@@ -146,7 +146,7 @@ export class TableActionsDeleteDialogComponent {
       <button mat-button mat-dialog-close>Cancel</button>
       <button mat-button [mat-dialog-close]="backupTableId">Backup</button>
     </mat-dialog-actions>
-  `
+  `,
 })
 export class TableActionsBackupDialogComponent {
   constructor(

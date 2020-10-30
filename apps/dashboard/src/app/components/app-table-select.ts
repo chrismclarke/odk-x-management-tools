@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { OdkRestService } from '../services/odkrest.service';
+import { OdkService } from '../services/odk';
 import { ITableMeta } from '../types/odk.types';
 import { FormControl } from '@angular/forms';
 import { Subscription } from 'rxjs';
@@ -8,19 +8,19 @@ import { Subscription } from 'rxjs';
   selector: 'odkxm-app-table-select',
   template: `
     <form
-      *ngIf="(odkRest.allAppIds$ | async).length > 0"
+      *ngIf="(odkService.allAppIds$ | async).length > 0"
       #f="ngForm"
-      style="display:flex"
+      style="display:flex; "
     >
       <mat-form-field>
         <mat-label>App ID</mat-label>
         <select
           matNativeControl
-          (change)="odkRest.setActiveAppId($event)"
-          [value]="odkRest.appId$ | async"
+          (change)="odkService.setActiveAppId($event)"
+          [value]="odkService.appId$ | async"
         >
           <option
-            *ngFor="let appId of odkRest.allAppIds$ | async"
+            *ngFor="let appId of odkService.allAppIds$ | async"
             [value]="appId"
           >
             {{ appId }}
@@ -34,26 +34,37 @@ import { Subscription } from 'rxjs';
           [compareWith]="compareById"
           matNativeControl
           [formControl]="activeTableControl"
-          (change)="odkRest.setActiveTable(activeTableControl.value)"
+          (change)="odkService.setActiveTable(activeTableControl.value)"
         >
           <option
-            *ngFor="let table of odkRest.allTables$ | async"
+            *ngFor="let table of odkService.allTables$ | async"
             [ngValue]="table"
           >
             {{ table.tableId }}
           </option>
         </select>
       </mat-form-field>
-      <mat-form-field style="margin-left:auto">
-        <mat-label>Query Size</mat-label>
-        <input
-          #fetchLimit
-          matNativeControl
-          (change)="odkRest.setFetchLimit(fetchLimit.value)"
-          [value]="odkRest.fetchLimit"
-          mat-input
-        />
-      </mat-form-field>
+      <div style="position:relative; margin-left:auto">
+        <mat-form-field>
+          <mat-label>Query Size</mat-label>
+          <input
+            #fetchLimit
+            matNativeControl
+            (change)="odkService.setFetchLimit(fetchLimit.value)"
+            [value]="odkService.fetchLimit"
+            mat-input
+            aria-label="Server requests will be split to avoid size or timeout restrictions. Specify maximum rows per request"
+          />
+        </mat-form-field>
+        <button
+          mat-icon-button
+          matTooltip="Server requests will be split to avoid size or timeout restrictions. Specify maximum rows per request"
+          matTooltipClass="tooltip"
+          aria-label="Button to show information about Query Size input"
+        >
+          <mat-icon>info</mat-icon>
+        </button>
+      </div>
     </form>
   `,
   styles: [
@@ -70,12 +81,12 @@ export class AppTableSelectComponent implements OnInit, OnDestroy {
   activeTableControl = new FormControl();
   table$: Subscription;
 
-  constructor(public odkRest: OdkRestService) {}
+  constructor(public odkService: OdkService) {}
 
   // Use subscriptions to set form value for table objects
   // (More verbose than simple value async pipe due to need for compareWith fn)
   ngOnInit() {
-    this.table$ = this.odkRest.table$.subscribe((t) => {
+    this.table$ = this.odkService.table$.subscribe((t) => {
       this.activeTableControl.setValue(t);
     });
   }

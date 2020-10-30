@@ -1,0 +1,41 @@
+.container {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #eee;
+}
+.sidenav {
+  width: 230px;
+  display: flex;
+  flex-direction: column;
+}
+.content {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  margin-left: 230px;
+  height: calc(100% - 40px);
+}
+
+.nav-link.disabled {
+  pointer-events: none;
+  opacity: 0.5;
+}
+.nav-link.active-link {
+  background: rgba(45, 59, 104, 0.82);
+  color: rgba(255, 255, 255, 0.95);
+  opacity: 1;
+}
+#appVersion {
+  opacity: 0.5;
+  margin-right: 10px;
+}
+.version-container {
+  margin-top: auto;
+}
+.app-header {
+  display: flex;
+  justify-content: space-between;
+}

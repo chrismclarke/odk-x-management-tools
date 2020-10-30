@@ -1,74 +1,80 @@
-import { Component } from '@angular/core';
+import { Component, EventEmitter, Output } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { IStorageKey } from '../types';
-import { OdkRestService } from '../services/odkrest.service';
-import { NotificationService } from '../services/notification.service';
+import { OdkService } from '../services/odk';
 
 @Component({
   selector: 'odkxm-server-login',
   template: `
-    <form
-      class="example-form"
-      [formGroup]="credentialsForm"
-      (ngSubmit)="connect(credentialsForm.value)"
-    >
-      <div class="form-fields-container">
-        <mat-form-field>
-          <mat-label>Server URL</mat-label>
-          <input
-            matInput
-            placeholder="https://..."
-            required
-            type="url"
-            formControlName="serverUrl"
-            name="url"
-            autocomplete="on"
-          />
-        </mat-form-field>
-        <mat-form-field>
-          <mat-label>Username</mat-label>
-          <input
-            matInput
-            formControlName="username"
-            autocomplete="on"
-            name="username"
-          />
-        </mat-form-field>
-        <mat-form-field>
-          <mat-label>Password</mat-label>
-          <input
-            matInput
-            formControlName="password"
-            type="password"
-            name="current-password"
-            autocomplete="on"
-          />
-        </mat-form-field>
-        <mat-checkbox formControlName="shouldRemember" color="primary">
-          Remember Me
-        </mat-checkbox>
-      </div>
-      <div class="form-buttons-container">
-        <button
-          *ngIf="!isConnected"
-          mat-stroked-button
-          color="primary"
-          type="submit"
-          [disabled]="credentialsForm.invalid || credentialsForm.disabled"
+    <mat-card style="max-width:700px">
+      <form
+        class="example-form"
+        [formGroup]="credentialsForm"
+        (ngSubmit)="connect(credentialsForm.value)"
+      >
+        <fieldset
+          class="form-fields-container"
+          [disabled]="(odkService.isConnected | async) === true"
         >
-          Connect
-        </button>
-        <button
-          *ngIf="isConnected"
-          mat-stroked-button
-          color="primary"
-          (click)="disconnect()"
-          [disabled]="credentialsForm.invalid"
-        >
-          Disconnect
-        </button>
-      </div>
-    </form>
+          <div>
+            <mat-form-field style="max-width:200px">
+              <mat-label>Server URL</mat-label>
+              <input
+                matInput
+                placeholder="https://..."
+                required
+                type="url"
+                formControlName="serverUrl"
+                name="url"
+                autocomplete="on"
+              />
+            </mat-form-field>
+            <mat-form-field>
+              <mat-label>Username</mat-label>
+              <input
+                matInput
+                formControlName="username"
+                autocomplete="on"
+                name="username"
+              />
+            </mat-form-field>
+            <mat-form-field>
+              <mat-label>Password</mat-label>
+              <input
+                matInput
+                formControlName="password"
+                type="password"
+                name="current-password"
+                autocomplete="on"
+              />
+            </mat-form-field>
+          </div>
+          <mat-checkbox formControlName="shouldRemember" color="primary">
+            Remember Me
+          </mat-checkbox>
+        </fieldset>
+        <div class="form-buttons-container">
+          <button
+            *ngIf="(odkService.isConnected | async) !== true"
+            mat-stroked-button
+            color="primary"
+            type="submit"
+            [disabled]="credentialsForm.invalid || credentialsForm.disabled"
+          >
+            Connect
+          </button>
+          <button
+            *ngIf="(odkService.isConnected | async) === true"
+            mat-stroked-button
+            color="primary"
+            (click)="disconnect()"
+            [disabled]="credentialsForm.invalid"
+          >
+            Disconnect
+          </button>
+        </div>
+      </form>
+    </mat-card>
   `,
   styles: [
     `
@@ -76,7 +82,6 @@ import { NotificationService } from '../services/notification.service';
         display: flex;
         flex-wrap: wrap;
         padding: 10px;
-        border: 1px solid var(--color-light);
       }
       .form-fields-container {
         flex: 1;
@@ -84,19 +89,22 @@ import { NotificationService } from '../services/notification.service';
       .form-buttons-container {
         margin-left: 20px;
       }
-      mat-form-field {
-        max-width: 200px;
-        width: 100%;
-        margin-right: 10px;
+      fieldset {
+        border: none;
       }
-    `
-  ]
+      mat-form-field {
+        max-width: 120px;
+        width: 100%;
+        margin-right: 20px;
+      }
+    `,
+  ],
 })
 export class ServerLoginComponent {
-  isConnected = false;
+  @Output() connectionChange = new EventEmitter<boolean>();
   credentialsForm: FormGroup;
   storage: Storage = localStorage;
-  constructor(private odkRest: OdkRestService, private fb: FormBuilder, private notifications:NotificationService) {
+  constructor(public odkService: OdkService, private fb: FormBuilder) {
     const serverUrl = this.getStorage('odkServerUrl');
     const token = this.getStorage('odkToken');
     const { username, password } = this.initializeToken(token);
@@ -105,7 +113,7 @@ export class ServerLoginComponent {
       serverUrl: [serverUrl, Validators.required],
       username: username,
       password: password,
-      shouldRemember: isRemembered
+      shouldRemember: isRemembered,
     });
   }
 
@@ -121,7 +129,9 @@ export class ServerLoginComponent {
     this.setStorage('odkServerUrl', serverUrl);
     this.setStorage('odkToken', btoa(`${username}:${password}`));
     try {
-      this.isConnected = await this.odkRest.connect();
+      await this.odkService.connect();
+      this.odkService.serverUrl = serverUrl;
+      this.connectionChange.next(this.odkService.isConnected.value);
     } catch (error) {
       this.credentialsForm.enable();
     }
@@ -131,8 +141,8 @@ export class ServerLoginComponent {
     this.storage.removeItem('odkToken');
     this.credentialsForm.reset();
     this.credentialsForm.enable();
-    this.isConnected = false;
-    this.odkRest.disconnect();
+    this.odkService.disconnect();
+    this.connectionChange.next(this.odkService.isConnected.value);
   }
 
   private createForm(model: ICredentialsFormModel): FormGroup {
@@ -147,7 +157,7 @@ export class ServerLoginComponent {
     return token
       ? {
           username: atob(token).split(':')[0],
-          password: atob(token).split(':')[1]
+          password: atob(token).split(':')[1],
         }
       : { username: '', password: '' };
   }
