@@ -1,10 +1,22 @@
 <div class="page">
-  <h3>Tables</h3>
   <odkxm-app-table-select style="margin-top: 20px"></odkxm-app-table-select>
+  <button
+    class="update-button"
+    mat-raised-button
+    color="accent"
+    [disabled]="rowUpdates.length === 0 || updatesProcessing"
+    *ngIf="odkRest.tableRows$ | async"
+    (click)="processRowUpdates()"
+  >
+    <mat-icon style="margin-right: 5px">cloud_upload</mat-icon>
+    <span>{{ rowUpdates.length | i18nPlural: pluralMap }}</span>
+  </button>
   <odkxm-table-data
     *ngIf="odkRest.table$ | async"
     [rows]="odkRest.tableRows$ | async"
+    [schema]="odkRest.tableSchema$ | async"
     style="display: block; flex: 1"
-    (selectedRowChange)="handleSelectedRowChange($event)"
+    (selectedRowChange)="handleSelectedRowChange()"
+    (tableEditsChange)="handleTableEditsChange($event)"
   ></odkxm-table-data>
 </div>

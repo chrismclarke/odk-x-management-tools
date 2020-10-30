@@ -6,16 +6,18 @@ import {
   ViewEncapsulation,
 } from '@angular/core';
 import { AgGridColumn } from 'ag-grid-angular';
-import { GridApi, DetailGridInfo, ColumnApi } from 'ag-grid-community';
-// import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-model';
-// import { RichSelectModule } from '@ag-grid-enterprise/rich-select';
-// import { MenuModule } from '@ag-grid-enterprise/menu';
-// import { ColumnsToolPanelModule } from '@ag-grid-enterprise/column-tool-panel';
-import { ITableRow } from '../types/odk.types';
+import {
+  GridApi,
+  DetailGridInfo,
+  ColumnApi,
+  CellValueChangedEvent,
+} from 'ag-grid-community';
+import { ITableRow, ITableSchema } from '../types/odk.types';
 import { OdkRestService } from '../services/odkrest.service';
 
 @Component({
   selector: 'odkxm-table-data',
+  encapsulation: ViewEncapsulation.None,
   template: `
     <div style="height:100%; display:flex; flex-direction:column">
       <mat-form-field class="filter-input-field">
@@ -42,16 +44,18 @@ import { OdkRestService } from '../services/odkrest.service';
       <ag-grid-angular
         style="flex:1"
         class="ag-theme-alpine"
-        [modules]="modules"
         [rowData]="rowData"
         [columnDefs]="displayedColumns"
         [defaultColDef]="columnDefaults"
         (firstDataRendered)="onFirstDataRendered($event)"
         [frameworkComponents]="frameworkComponents"
         [enableCellTextSelection]="false"
-        (selectionChanged)="onSelectionChanged($event)"
+        (selectionChanged)="onSelectionChanged()"
         rowSelection="single"
         (cellValueChanged)="onCellValueChanged($event)"
+        [undoRedoCellEditing]="true"
+        [undoRedoCellEditingLimit]="20"
+        [enableCellChangeFlash]="true"
       >
       </ag-grid-angular>
     </div>
@@ -77,9 +81,15 @@ import { OdkRestService } from '../services/odkrest.service';
       .filter-input-field .mat-form-field-wrapper {
         margin-bottom: -1.25em;
       }
+      .cell {
+        cursor: pointer;
+      }
+      .cell.non-editable {
+        opacity: 0.7;
+        cursor: default;
+      }
     `,
   ],
-  encapsulation: ViewEncapsulation.None,
 })
 export class TableDataComponent {
   public rowData: ITableRow[];
@@ -87,29 +97,20 @@ export class TableDataComponent {
   private columnApi: ColumnApi;
   private gridApi: GridApi;
   public columnDefaults: Partial<AgGridColumn>;
-  public modules = [
-    // ClientSideRowModelModule,
-    // RichSelectModule,
-    // MenuModule,
-    // ColumnsToolPanelModule,
-  ];
   public frameworkComponents = { testCellRenderer: null };
+  public tableEdits: ITableEdit[] = [];
 
   @Output() 'selectedRowChange' = new EventEmitter<ITableRow[]>();
+  @Output() 'tableEditsChange' = new EventEmitter<ITableEdit[]>();
   @Input('rows') set rows(rows: ITableRow[]) {
+    this.tableEdits = [];
     this.rowData = rows;
-    this.displayedColumns = this.generateColumns(rows).map((col) => ({
-      field: col,
-      editable: col.charAt(0) !== '_',
-      cellEditor: this._selectCellEditor(col),
-      cellEditorParams: (params) => {
-        console.log('set editor params', params);
-        return {
-          values: ['test1', 'test2'],
-          cellRenderer: 'testCellRenderer',
-        };
-      },
-    }));
+  }
+  @Input('schema') set schema(schema: ITableSchema) {
+    if (schema) {
+      console.log('table schema', schema);
+      this.displayedColumns = this.generateColumns(schema);
+    }
   }
 
   constructor(public odkRest: OdkRestService) {
@@ -118,10 +119,14 @@ export class TableDataComponent {
       filter: true,
       resizable: true,
       initialWidth: 150,
+      cellClass: 'cell',
     };
   }
-  onCellValueChanged(params) {
-    console.log('cell value changed', params);
+  onCellValueChanged(params: CellValueChangedEvent) {
+    const rowField = (params.column as any).colId;
+    const { oldValue, newValue, data } = params;
+    this.tableEdits.push({ rowField, oldValue, newValue, rowData: data });
+    this.tableEditsChange.next(this.tableEdits);
   }
 
   /**
@@ -136,42 +141,93 @@ export class TableDataComponent {
     this.gridApi.setQuickFilter(searchValue);
   }
   onSelectionChanged() {
-    // const selected = this.gridApi.getSelectedRows();
-    // this.selectedRowChange.next(selected);
+    const selected = this.gridApi.getSelectedRows();
+    this.selectedRowChange.next(selected);
   }
 
-  private _selectCellEditor(column: string) {
-    // TODO - lookup datatype
-    const datatype: string = 'string' as any;
-    switch (datatype) {
-      case 'string':
-        return 'agTextCellEditor';
-      // included editors: https://www.ag-grid.com/javascript-grid-provided-cell-editors/
-      default:
-        if (datatype.includes('string(')) {
-          return 'agLargeTextCellEditor';
-        }
-        throw new Error('no cell editor for data format: ' + datatype);
+  private generateColumns(schema: ITableSchema) {
+    const { orderedColumns } = schema;
+    const displayColumns: Partial<AgGridColumn>[] = orderedColumns.map((c) => {
+      const { cellEditor, cellEditorParams } = this.getCellEditor(c);
+      return {
+        field: c.elementKey,
+        editable: c.elementKey.charAt(0) !== '_',
+        cellEditor,
+        cellEditorParams,
+      };
+    });
+    // Add non-editable metadata keys at start and end of table
+    Object.entries(META_MAPPING).forEach(([key, position]) => {
+      const mapping: Partial<AgGridColumn> = {
+        field: key,
+        cellClass: 'cell non-editable',
+      };
+      if (position === 'start') {
+        displayColumns.unshift(mapping);
+      } else {
+        displayColumns.push(mapping);
+      }
+    });
+    return displayColumns;
+  }
+
+  private getCellEditor(columnMeta: ITableSchema['orderedColumns'][0]) {
+    const cellEditor = specifyEditorType(columnMeta.elementType);
+    const cellEditorParams = specifyEditorParams(columnMeta.elementType);
+
+    return { cellEditor, cellEditorParams };
+
+    function specifyEditorType(elementType: string) {
+      // TODO - add support for all datatypes
+      // TODO - add support for reading select question types, and returning choice picker with correct options
+      switch (elementType) {
+        case 'string':
+          return 'agTextCellEditor';
+        // included editors: https://www.ag-grid.com/javascript-grid-provided-cell-editors/
+        default:
+          if (elementType.includes('string(')) {
+            return 'agLargeTextCellEditor';
+          }
+          // should be ok as long as string entries are re-processed server side
+          console.warn(
+            `editing [${elementType}] as string`,
+            columnMeta.elementKey
+          );
+      }
+    }
+    function specifyEditorParams(elementType: string) {
+      switch (elementType) {
+        default:
+          return {};
+      }
     }
   }
-
-  /**
-   * Use the list of keys from the first row to define columns
-   */
-  private generateColumns(rows: ITableRow[]): string[] {
-    return rows[0] ? this._sortColumns(Object.keys(rows[0])) : [];
-  }
-
-  /**
-   * Sort data columns alphabetically with metadata keys appearing after rest
-   */
-  private _sortColumns(keys: string[]) {
-    const metaKeys = [];
-    const valKeys = [];
-    keys.forEach((k) => {
-      if (k.charAt(0) === '_') metaKeys.push(k);
-      else valKeys.push(k);
-    });
-    return [...valKeys.sort(), ...metaKeys.sort()];
-  }
 }
+
+export interface ITableEdit {
+  rowField: string;
+  oldValue: any;
+  newValue: any;
+  rowData: ITableRow;
+}
+
+/**
+ * Simple mapping of all metadata keys, indicating which should appear at the start of the
+ * table and which will appear at the end
+ */
+const META_MAPPING: { [key in keyof ITableRow]: 'start' | 'end' } = {
+  _data_etag_at_modification: 'end',
+  _default_access: 'end',
+  _deleted: 'end',
+  _form_id: 'end',
+  _group_modify: 'end',
+  _group_privileged: 'end',
+  _group_read_only: 'end',
+  _id: 'end',
+  _locale: 'end',
+  _row_etag: 'start',
+  _row_owner: 'end',
+  _savepoint_creator: 'end',
+  _savepoint_timestamp: 'start',
+  _savepoint_type: 'end',
+};

@@ -11,26 +11,30 @@ import {
   BoolString,
   ISOString,
   Savepoint,
-  ITableMetaColumnKey,
 } from '../types/odk.types';
+import {OdkRestService} './odk/odk.rest'
 import { NotificationService } from './notification.service';
+import * as ODKUtils from './odk/odk.utils';
 
 @Injectable({ providedIn: 'root' })
-export class OdkRestService {
+export class OdkService {
   // observable properties for use in components
   allAppIds$: BehaviorSubject<string[]>;
   allTables$: BehaviorSubject<ITableMeta[]>;
   appId$: BehaviorSubject<string>;
   table$: BehaviorSubject<ITableMeta>;
   tableRows$: BehaviorSubject<ITableRow[]>;
+  tableSchema$: BehaviorSubject<ITableSchema>;
   userPriviledges$: BehaviorSubject<IUserPriviledge>;
   fetchLimit = localStorage.getItem('fetchLimit') || '50';
   isConnected: BehaviorSubject<boolean>;
-  private _cache = { tableRows: {} };
+  serverUrl: string;
+  private _cache: IQueryCache = {};
 
   constructor(
     private http: HttpClient,
-    private notifications: NotificationService
+    private notifications: NotificationService,
+    private odk:OdkRestService
   ) {
     this.init();
   }
@@ -40,12 +44,14 @@ export class OdkRestService {
    * to allow disconnect reset function
    */
   private init() {
+    this.serverUrl = null;
+    this.tableSchema$ = new BehaviorSubject(undefined);
     this.isConnected = new BehaviorSubject(false);
     this.allAppIds$ = new BehaviorSubject([]);
     this.allTables$ = new BehaviorSubject([]);
     this.appId$ = new BehaviorSubject(undefined);
     this.table$ = new BehaviorSubject(undefined);
-    this.tableRows$ = new BehaviorSubject([]);
+    this.tableRows$ = new BehaviorSubject(undefined);
     this.userPriviledges$ = new BehaviorSubject(undefined);
   }
 
@@ -55,6 +61,7 @@ export class OdkRestService {
   /**
    *  On initial connect, attempt to load list of apps
    *  and set current app as default.
+   *  Note, connection is configured in server-login component.
    *  @returns - boolean depending on connection success
    */
   async connect() {
@@ -77,23 +84,38 @@ export class OdkRestService {
    * table data and user priviledges for the app
    */
   setActiveAppId(appId: string) {
+    this.userPriviledges$.next(undefined);
     this.appId$.next(appId);
-    this.getPriviledgesInfo();
+    const userPriviledges = await this.odk.getPriviledgesInfo()
+    if (userPriviledges) {
+      this.userPriviledges$.next(userPriviledges);
+    }
+    
     this.getTables();
   }
+  /**
+   * When setting the active table get the table definition any any rows
+   * from the server (or cache if available) and populate to their corresponding
+   * behaviour subjects and cache
+   */
   async setActiveTable(table: ITableMeta | undefined) {
     console.log('setting active table', table);
     this.table$.next(table);
-    this.tableRows$.next([]);
+    this.tableRows$.next(undefined);
     if (table) {
-      const { tableId } = table;
-      if (this._cache.tableRows[tableId]) {
-        return this.tableRows$.next(this._cache.tableRows[tableId]);
+      const { tableId, schemaETag } = table;
+      if (this._cache[tableId]) {
+        this.tableSchema$.next(this._cache[tableId].schema);
+        this.tableRows$.next(this._cache[tableId].rows);
       } else {
+        // TODO - handle in parallel?
+        const appId = this.appId$.value;
+        const schema = await this.getDefinition(appId, tableId, schemaETag);
+        this.tableSchema$.next(schema);
         const { rows } = await this.getRowsInBatch(table);
-        const tableRows = this._convertODKRowsForExport(rows);
-        this._cache.tableRows[tableId] = tableRows;
+        const tableRows = ODKUtils.convertODKRowsForExport(rows);
         this.tableRows$.next(tableRows);
+        this._cache[tableId] = { schema, rows: tableRows };
       }
     }
   }
@@ -122,6 +144,18 @@ export class OdkRestService {
       return this.getRowsInBatch(table, allRows, webSafeResumeCursor);
     }
     return { ...res, rows: allRows };
+  }
+  async updateRows(tableRows: ITableRow[]) {
+    const appId = this.appId$.value;
+    const { tableId, schemaETag, dataETag } = this.table$.value;
+    console.log('updating rows', tableId, schemaETag, dataETag);
+    // TODO - check if rows need to be converted
+    const rows = tableRows as any;
+    const res = await this.alterRows(appId, tableId, schemaETag, {
+      rows,
+      dataETag,
+    });
+    console.log('res', res);
   }
   async backupCurrentTable(backupTableId: string) {
     const appId = this.appId$.value;
@@ -168,74 +202,9 @@ export class OdkRestService {
     const promises = this.allTables$.value.map(async (table) => {
       const { tableId, schemaETag } = table;
       const res = await this.getRows(appId, tableId, schemaETag);
-      return { tableId, rows: this._convertODKRowsForExport(res.rows) };
+      return { tableId, rows: ODKUtils.convertODKRowsForExport(res.rows) };
     });
     return Promise.all(promises);
-  }
-
-  /**
-   * By default ODK rest returns rows with metadata and values defined in
-   * a different format to how it is shown and exported in app
-   * - Convert metadata fields to snake_case and prefix with underscore,
-   * - De-nest filterScope and add to metadata prefixed with _group
-   * - De-nest orderedColumns and extract to variable values
-   * - Delete various fields
-   * - Match metafield order as specified in SyncClient.java
-   */
-  private _convertODKRowsForExport(rows: IResTableRow[]): ITableRow[] {
-    const converted = [];
-    rows.forEach((row) => {
-      const data: any = {};
-      // create mapping for all fields as snake case, and un-nest filtersocpe fields
-      const { filterScope } = row;
-      Object.entries(filterScope).forEach(([key, value]) => {
-        row[`_${this._camelToSnake(key)}`] = value;
-      });
-      Object.entries(row).forEach(([key, value]) => {
-        row[`_${this._camelToSnake(key)}`] = value;
-      });
-      const metadataColumns1: ITableMetaColumnKey[] = [
-        '_id',
-        '_form_id',
-        '_locale',
-        '_savepoint_type',
-        '_savepoint_timestamp',
-        '_savepoint_creator',
-        '_deleted',
-        '_data_etag_at_modification',
-      ];
-      // some metadata columns go to front
-      metadataColumns1.forEach((col) => (data[col] = row[col]));
-      // main data in centre
-      row.orderedColumns.forEach((el) => {
-        const { column, value } = el;
-        data[column] = value;
-      });
-      const metadataColumns2: ITableMetaColumnKey[] = [
-        '_default_access',
-        '_group_modify',
-        '_group_privileged',
-        '_group_read_only',
-        '_row_etag',
-        '_row_owner',
-      ];
-      // other metadata columns go to back
-      metadataColumns2.forEach((col) => (data[col] = row[col]));
-      converted.push(data);
-    });
-    console.log('converted', converted);
-    return converted;
-  }
-  /**
-   * String convert util
-   * @example rowETag -> row_etag
-   */
-  private _camelToSnake(str: string) {
-    return str
-      .replace(/[\w]([A-Z])/g, function (m) {
-        return m[0] + '_' + m[1];
-      })
-      .toLowerCase();
   }
 
   /********************************************************
@@ -243,16 +212,7 @@ export class OdkRestService {
    * https://docs.odk-x.org/odk-2-sync-protocol/
    * TODO - remove all local state management to better reflect odk-x sync
    *********************************************************/
-  private async getPriviledgesInfo() {
-    this.userPriviledges$.next(undefined);
-    const appId = this.appId$.value;
-    const path = `${appId}/privilegesInfo`;
-    const userPriviledges = await this.get<IResUserPriviledge>(path);
-    console.log('user priviledges', userPriviledges);
-    if (userPriviledges) {
-      this.userPriviledges$.next(userPriviledges);
-    }
-  }
+
   private async getTables() {
     this.allTables$.next([]);
     const appId = this.appId$.value;
@@ -527,4 +487,10 @@ interface IManifestItem {
   contentType: string;
   md5hash: string;
   downloadUrl: string;
+}
+interface IQueryCache {
+  [tableId: string]: {
+    schema: ITableSchema;
+    rows: ITableRow[];
+  };
 }
