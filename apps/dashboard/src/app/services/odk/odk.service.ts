@@ -2,39 +2,29 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { IAPIResponse } from '@odkxm/api-interfaces';
 import { BehaviorSubject } from 'rxjs';
-import {
-  ITableMeta,
-  IUserPriviledge,
-  ITableRow,
-  ITableSchema,
-  AccessLevel,
-  BoolString,
-  ISOString,
-  Savepoint,
-} from '../types/odk.types';
-import {OdkRestService} './odk/odk.rest'
-import { NotificationService } from './notification.service';
-import * as ODKUtils from './odk/odk.utils';
+import * as IODK from '../../types/odk.types';
+import OdkRestService from './odk.rest';
+import { NotificationService } from '../notification.service';
+import * as ODKUtils from './odk.utils';
 
 @Injectable({ providedIn: 'root' })
 export class OdkService {
   // observable properties for use in components
   allAppIds$: BehaviorSubject<string[]>;
-  allTables$: BehaviorSubject<ITableMeta[]>;
+  allTables$: BehaviorSubject<IODK.ITableMeta[]>;
   appId$: BehaviorSubject<string>;
-  table$: BehaviorSubject<ITableMeta>;
-  tableRows$: BehaviorSubject<ITableRow[]>;
-  tableSchema$: BehaviorSubject<ITableSchema>;
-  userPriviledges$: BehaviorSubject<IUserPriviledge>;
+  table$: BehaviorSubject<IODK.ITableMeta>;
+  tableRows$: BehaviorSubject<IODK.ITableRow[]>;
+  tableSchema$: BehaviorSubject<IODK.ITableSchema>;
+  userPriviledges$: BehaviorSubject<IODK.IUserPriviledge>;
   fetchLimit = localStorage.getItem('fetchLimit') || '50';
   isConnected: BehaviorSubject<boolean>;
   serverUrl: string;
   private _cache: IQueryCache = {};
-
+  private odkRest = new OdkRestService();
   constructor(
     private http: HttpClient,
-    private notifications: NotificationService,
-    private odk:OdkRestService
+    private notifications: NotificationService
   ) {
     this.init();
   }
@@ -83,14 +73,14 @@ export class OdkService {
    * Set the active app id, triggering calls to retrieve
    * table data and user priviledges for the app
    */
-  setActiveAppId(appId: string) {
+  async setActiveAppId(appId: string) {
     this.userPriviledges$.next(undefined);
     this.appId$.next(appId);
-    const userPriviledges = await this.odk.getPriviledgesInfo()
+    const userPriviledges = await this.odkRest.getPriviledgesInfo();
     if (userPriviledges) {
       this.userPriviledges$.next(userPriviledges);
     }
-    
+
     this.getTables();
   }
   /**
@@ -98,7 +88,7 @@ export class OdkService {
    * from the server (or cache if available) and populate to their corresponding
    * behaviour subjects and cache
    */
-  async setActiveTable(table: ITableMeta | undefined) {
+  async setActiveTable(table: IODK.ITableMeta | undefined) {
     console.log('setting active table', table);
     this.table$.next(table);
     this.tableRows$.next(undefined);
@@ -123,7 +113,7 @@ export class OdkService {
    * Use paged queries to get all rows and avoid timeout/size issues
    */
   async getRowsInBatch(
-    table: ITableMeta,
+    table: IODK.ITableMeta,
     allRows = [],
     cursor = null
   ): Promise<IResTableRows> {
@@ -145,7 +135,7 @@ export class OdkService {
     }
     return { ...res, rows: allRows };
   }
-  async updateRows(tableRows: ITableRow[]) {
+  async updateRows(tableRows: IODK.ITableRow[]) {
     const appId = this.appId$.value;
     const { tableId, schemaETag, dataETag } = this.table$.value;
     console.log('updating rows', tableId, schemaETag, dataETag);
@@ -162,7 +152,7 @@ export class OdkService {
     const { tableId, schemaETag } = this.table$.value;
     const schema = await this.getDefinition(appId, tableId, schemaETag);
     const { orderedColumns } = schema;
-    const backupSchema: ITableSchema = {
+    const backupSchema: IODK.ITableSchema = {
       schemaETag: `uuid:${UUID().toString()}`,
       tableId: backupTableId,
       orderedColumns,
@@ -241,7 +231,7 @@ export class OdkService {
     return this.get<IResTableRows>(path, params);
   }
 
-  private async createTable(schema: ITableSchema) {
+  private async createTable(schema: IODK.ITableSchema) {
     const appId = this.appId$.value;
     const { tableId } = schema;
     const path = `${appId}/tables/${tableId}`;
@@ -410,7 +400,7 @@ function UUID() {
  *********************************************************/
 interface IResTables extends IResBase {
   appLevelManifestETag: string;
-  tables: ITableMeta[];
+  tables: IODK.ITableMeta[];
 }
 interface IResTableRows extends IResBase {
   dataETag: string;
@@ -422,11 +412,11 @@ interface IResTableRow {
   dataETagAtModification: string;
   deleted: false;
   filterScope: {
-    defaultAccess: AccessLevel;
+    defaultAccess: IODK.AccessLevel;
     rowOwner: string;
-    groupReadOnly: BoolString;
-    groupModify: BoolString;
-    groupPrivileged: BoolString;
+    groupReadOnly: IODK.BoolString;
+    groupModify: IODK.BoolString;
+    groupPrivileged: IODK.BoolString;
   };
   formId: string;
   id: string;
@@ -435,8 +425,8 @@ interface IResTableRow {
   orderedColumns: IResTableColumn[];
   rowETag: string;
   savepointCreator: string;
-  savepointTimestamp: ISOString;
-  savepointType: Savepoint;
+  savepointTimestamp: IODK.ISOString;
+  savepointType: IODK.Savepoint;
   selfUri: string;
 }
 interface IResTableColumn {
@@ -448,7 +438,7 @@ interface IResAlterRows {
   rows: ITableRowAltered[];
   tableUri: string;
 }
-interface ITableRowAltered extends ITableRow {
+interface ITableRowAltered extends IODK.ITableRow {
   outcome: 'UNKNOWN' | 'SUCCESS' | 'DENIED' | 'IN_CONFLICT' | 'FAILED';
 }
 interface IResTableCreate {
@@ -470,12 +460,12 @@ interface IResBase {
   webSafeRefetchCursor: null;
   webSafeResumeCursor: string;
 }
-interface IResSchema extends ITableSchema {
+interface IResSchema extends IODK.ITableSchema {
   selfUri: string;
   tableUri: string;
 }
 
-type IResUserPriviledge = IUserPriviledge;
+type IResUserPriviledge = IODK.IUserPriviledge;
 interface RowList {
   // rows not technically partial, but same without selfUri info
   rows: Partial<IResTableRow>[];
@@ -490,7 +480,7 @@ interface IManifestItem {
 }
 interface IQueryCache {
   [tableId: string]: {
-    schema: ITableSchema;
-    rows: ITableRow[];
+    schema: IODK.ITableSchema;
+    rows: IODK.ITableRow[];
   };
 }

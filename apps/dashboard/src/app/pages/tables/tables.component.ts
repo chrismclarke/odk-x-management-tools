@@ -5,7 +5,7 @@ import {
   ITableRowEditorData,
   TableRowEditorDialogComponent,
 } from '../../components/table-row-editor';
-import { OdkRestService } from '../../services/odkrest.service';
+import { OdkService } from '../../services/odk';
 import { ITableRow } from '../../types/odk.types';
 
 @Component({
@@ -19,27 +19,14 @@ export class TablesComponent {
     '=1': '1 Update',
     other: '# Updates',
   };
-  constructor(public odkRest: OdkRestService, private dialog: MatDialog) {}
+  constructor(public odkService: OdkService, private dialog: MatDialog) {}
   rowUpdates: ITableRow[] = [];
   updatesProcessing = false;
-  handleSelectedRowChange(rows: ITableRow[]) {
-    // TODO - implement when more feature-rich editor available for full row
-    // (currently editing individual cells preserves better data type matching)
-    // console.log('selected row changed', rows);
-    // if (rows[0]) {
-    //   const data: ITableRowEditorData = {
-    //     row: rows[0],
-    //   };
-    //   const dialogRef = this.dialog.open(TableRowEditorDialogComponent, {
-    //     height: '400px',
-    //     width: '600px',
-    //     data,
-    //   });
-    // }
-  }
-  processRowUpdates() {
+
+  async processRowUpdates() {
     this.updatesProcessing = true;
     console.log('processing row updates', this.rowUpdates);
+    await this.odkService.updateRows(this.rowUpdates);
   }
 
   handleTableEditsChange(changes: ITableEdit[]) {
@@ -54,5 +41,21 @@ export class TablesComponent {
       }
     });
     this.rowUpdates = Object.values(changesByRowId);
+  }
+
+  handleSelectedRowChange(rows: ITableRow[]) {
+    // TODO - implement when more feature-rich editor available for full row
+    // (currently editing individual cells preserves better data type matching)
+    // console.log('selected row changed', rows);
+    // if (rows[0]) {
+    //   const data: ITableRowEditorData = {
+    //     row: rows[0],
+    //   };
+    //   const dialogRef = this.dialog.open(TableRowEditorDialogComponent, {
+    //     height: '400px',
+    //     width: '600px',
+    //     data,
+    //   });
+    // }
   }
 }

@@ -1,10 +1,10 @@
 import { Component } from '@angular/core';
-import { OdkRestService } from '../../services/odkrest.service';
+import { OdkService } from '../../services/odk';
 
 @Component({
   templateUrl: './export.component.html',
   styleUrls: ['./export.component.scss'],
 })
 export class ExportComponent {
-  constructor(public odkRest: OdkRestService) {}
+  constructor(public odkService: OdkService) {}
 }

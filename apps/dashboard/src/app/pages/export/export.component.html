@@ -1,4 +1,6 @@
 <odkxm-app-table-select style="margin-top: 20px"></odkxm-app-table-select>
-<div *ngIf="odkRest.table$ | async">
-  <odkxm-table-actions [table]="odkRest.table$ | async"></odkxm-table-actions>
+<div *ngIf="odkService.table$ | async">
+  <odkxm-table-actions
+    [table]="odkService.table$ | async"
+  ></odkxm-table-actions>
 </div>

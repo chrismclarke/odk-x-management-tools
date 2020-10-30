@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { environment } from '../environments/environment';
 import { routes } from './app-routing.module';
-import { OdkRestService } from './services/odkrest.service';
+import { OdkService } from './services/odk';
 import Animations from './animations';
 
 @Component({
@@ -14,7 +14,7 @@ import Animations from './animations';
 export class AppComponent {
   appVersion = environment.appVersion;
   pages: IPage[];
-  constructor(public odkRestService: OdkRestService) {
+  constructor(public odkService: OdkService) {
     this.pages = routes
       .filter((r) => r.data && r.data.menu)
       .map((r) => r.data.menu as any);

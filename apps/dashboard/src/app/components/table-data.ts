@@ -13,7 +13,7 @@ import {
   CellValueChangedEvent,
 } from 'ag-grid-community';
 import { ITableRow, ITableSchema } from '../types/odk.types';
-import { OdkRestService } from '../services/odkrest.service';
+import { OdkService } from '../services/odk';
 
 @Component({
   selector: 'odkxm-table-data',
@@ -113,7 +113,7 @@ export class TableDataComponent {
     }
   }
 
-  constructor(public odkRest: OdkRestService) {
+  constructor(public odkService: OdkService) {
     this.columnDefaults = {
       sortable: true,
       filter: true,

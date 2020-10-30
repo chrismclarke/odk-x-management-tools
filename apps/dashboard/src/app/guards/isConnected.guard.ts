@@ -5,16 +5,16 @@ import {
   Router,
   RouterStateSnapshot,
 } from '@angular/router';
-import { OdkRestService } from '../services/odkrest.service';
+import { OdkService } from '../services/odk';
 
 @Injectable({ providedIn: 'root' })
 export class IsConnectedGuard implements CanActivate {
-  constructor(private odkRestService: OdkRestService, private router: Router) {}
+  constructor(private odkService: OdkService, private router: Router) {}
   canActivate(
     next: ActivatedRouteSnapshot,
     state: RouterStateSnapshot
   ): boolean {
-    if (this.odkRestService.isConnected.value === true) {
+    if (this.odkService.isConnected.value === true) {
       return true;
     } else {
       this.router.navigate(['/connection']);

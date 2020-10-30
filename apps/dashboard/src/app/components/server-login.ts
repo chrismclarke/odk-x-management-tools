@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Output } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { IStorageKey } from '../types';
-import { OdkRestService } from '../services/odkrest.service';
+import { OdkService } from '../services/odk';
 
 @Component({
   selector: 'odkxm-server-login',
@@ -14,7 +14,7 @@ import { OdkRestService } from '../services/odkrest.service';
       >
         <fieldset
           class="form-fields-container"
-          [disabled]="(odkRest.isConnected | async) === true"
+          [disabled]="(odkService.isConnected | async) === true"
         >
           <div>
             <mat-form-field style="max-width:200px">
@@ -55,7 +55,7 @@ import { OdkRestService } from '../services/odkrest.service';
         </fieldset>
         <div class="form-buttons-container">
           <button
-            *ngIf="(odkRest.isConnected | async) !== true"
+            *ngIf="(odkService.isConnected | async) !== true"
             mat-stroked-button
             color="primary"
             type="submit"
@@ -64,7 +64,7 @@ import { OdkRestService } from '../services/odkrest.service';
             Connect
           </button>
           <button
-            *ngIf="(odkRest.isConnected | async) === true"
+            *ngIf="(odkService.isConnected | async) === true"
             mat-stroked-button
             color="primary"
             (click)="disconnect()"
@@ -104,7 +104,7 @@ export class ServerLoginComponent {
   @Output() connectionChange = new EventEmitter<boolean>();
   credentialsForm: FormGroup;
   storage: Storage = localStorage;
-  constructor(public odkRest: OdkRestService, private fb: FormBuilder) {
+  constructor(public odkService: OdkService, private fb: FormBuilder) {
     const serverUrl = this.getStorage('odkServerUrl');
     const token = this.getStorage('odkToken');
     const { username, password } = this.initializeToken(token);
@@ -129,9 +129,9 @@ export class ServerLoginComponent {
     this.setStorage('odkServerUrl', serverUrl);
     this.setStorage('odkToken', btoa(`${username}:${password}`));
     try {
-      await this.odkRest.connect();
-      this.odkRest.serverUrl = serverUrl;
-      this.connectionChange.next(this.odkRest.isConnected.value);
+      await this.odkService.connect();
+      this.odkService.serverUrl = serverUrl;
+      this.connectionChange.next(this.odkService.isConnected.value);
     } catch (error) {
       this.credentialsForm.enable();
     }
@@ -141,8 +141,8 @@ export class ServerLoginComponent {
     this.storage.removeItem('odkToken');
     this.credentialsForm.reset();
     this.credentialsForm.enable();
-    this.odkRest.disconnect();
-    this.connectionChange.next(this.odkRest.isConnected.value);
+    this.odkService.disconnect();
+    this.connectionChange.next(this.odkService.isConnected.value);
   }
 
   private createForm(model: ICredentialsFormModel): FormGroup {

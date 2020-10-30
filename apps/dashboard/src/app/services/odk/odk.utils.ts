@@ -22,10 +22,10 @@ export function convertODKRowsForExport(
     // create mapping for all fields as snake case, and un-nest filtersocpe fields
     const { filterScope } = row;
     Object.entries(filterScope).forEach(([key, value]) => {
-      row[`_${this._camelToSnake(key)}`] = value;
+      row[`_${camelToSnake(key)}`] = value;
     });
     Object.entries(row).forEach(([key, value]) => {
-      row[`_${this._camelToSnake(key)}`] = value;
+      row[`_${camelToSnake(key)}`] = value;
     });
     const metadataColumns1: IODK.ITableMetaColumnKey[] = [
       '_id',
