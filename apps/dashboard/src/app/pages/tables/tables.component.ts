@@ -43,6 +43,8 @@ export class TablesComponent {
     );
     this.notifications.showMessage(messages.join(', '));
     this.odkService.refreshActiveTable();
+    this.rowUpdates = [];
+    this.updatesProcessing = false;
   }
 
   handleTableEditsChange(changes: ITableEdit[]) {

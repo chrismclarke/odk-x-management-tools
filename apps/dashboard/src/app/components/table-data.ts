@@ -110,6 +110,8 @@ export class TableDataComponent {
     if (schema) {
       console.log('table schema', schema);
       this.displayedColumns = this.generateColumns(schema);
+    } else {
+      this.displayedColumns = [];
     }
   }
 
@@ -188,11 +190,11 @@ export class TableDataComponent {
           if (elementType.includes('string(')) {
             return 'agLargeTextCellEditor';
           }
-          // should be ok as long as string entries are re-processed server side
-          console.warn(
-            `editing [${elementType}] as string`,
-            columnMeta.elementKey
-          );
+        // should be fine as string entries are re-processed server side
+        // console.warn(
+        //   `editing [${elementType}] as string`,
+        //   columnMeta.elementKey
+        // );
       }
     }
     function specifyEditorParams(elementType: string) {

@@ -100,6 +100,7 @@ export class OdkService {
    */
   async refreshActiveTable() {
     this.tableRows$.next(undefined);
+    this.tableSchema$.next(undefined);
     this._cache[this.table$.value.tableId] = undefined;
     this.setActiveTable(this.table$.value);
   }
