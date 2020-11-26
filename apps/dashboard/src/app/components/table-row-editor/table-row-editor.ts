@@ -1,6 +1,8 @@
-import { Component, Inject, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup } from '@angular/forms';
+import { AfterViewInit, Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import { FormControl, FormGroup } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { Subscription } from 'rxjs';
+import { NotificationService } from '../../services/notification.service';
 import { OdkService } from '../../services/odk';
 import { extractFormdefPromptsByName } from '../../services/odk/odk.utils';
 import {
@@ -21,13 +23,18 @@ import {
   styleUrls: ['./table-row-editor.scss'],
   templateUrl: './table-row-editor.html',
 })
-export class TableRowEditorDialogComponent implements OnInit {
-  loading = true;
+export class TableRowEditorDialogComponent implements AfterViewInit, OnDestroy {
+  isLoading = true;
+  isSaving = false;
+  initialValues: { [fieldname: string]: string };
   fields: ISurveyRowWithValue[];
   formGroup: FormGroup;
+  formChanges$: Subscription;
+  /** Keep list of fields that have changed for css styling */
+  fieldsChanged: { [name: string]: boolean } = {};
   constructor(
     private odkService: OdkService,
-    private fb: FormBuilder,
+    private notifications: NotificationService,
     public dialogRef: MatDialogRef<TableRowEditorDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: ITableRowEditorData
   ) {}
@@ -35,17 +42,68 @@ export class TableRowEditorDialogComponent implements OnInit {
   cancel() {
     this.dialogRef.close();
   }
-  saveEdits() {}
+  async saveEdits() {
+    this.isSaving = true;
+    const updatedValues = this.formGroup.value;
+    const updatedRow = this.data.row;
+    // just process entries which have been marked as updated, and apply to original document
+    Object.entries(this.fieldsChanged)
+      .filter(([_, isChanged]) => isChanged)
+      .forEach(([fieldname]) => {
+        const updateValue = updatedValues[fieldname];
+        updatedRow[fieldname] = updateValue;
+      });
+    const res = await this.odkService.updateRows([updatedRow]);
+    console.log('save response', res);
 
-  ngOnInit() {
-    console.log('table row editor', this.data);
-    this.prepareQuestions();
+    // handle response
+    if (res.rows[0].outcome === 'SUCCESS') {
+      this.notifications.showMessage(`save - ${res.rows[0].outcome}`, 'success', {
+        duration: 2000,
+      });
+      // reset form state
+      this.fieldsChanged = {};
+      this.initialValues = updatedValues;
+      this.formGroup.reset(updatedValues);
+    } else {
+      // TODO - handle partial success
+      this.notifications.showMessage(`save - ${res.rows[0].outcome}`, 'error', { duration: 3500 });
+    }
+    this.isSaving = false;
   }
+
+  ngAfterViewInit() {
+    console.log('table row editor', this.data);
+    this.init();
+  }
+  ngOnDestroy() {
+    console.log('destroy', this.formChanges$);
+    this.formChanges$.unsubscribe();
+  }
+  undoEdit(fieldname: string) {
+    this.formGroup.patchValue({ [fieldname]: this.initialValues[fieldname] });
+    this.fieldsChanged[fieldname] = false;
+  }
+
+  private async init() {
+    this.fields = await this.getFieldsFromFormDef();
+    console.log('fields', arrayToHashmap(this.fields, 'name'));
+    this.formGroup = this.buildFormGroupFromFields(this.fields);
+    this.initialValues = this.formGroup.value;
+    console.log('initialValues', this.initialValues);
+    this._subscribeToFormChanges();
+    this.isLoading = false;
+  }
+
+  public trackByFieldName(index: number, field: ISurveyRowWithValue) {
+    return field.name;
+  }
+
   /**
    * Load the formdef for the current data row and extract all questions,
    * labels and select options
    */
-  async prepareQuestions() {
+  private async getFieldsFromFormDef() {
     const { table, row } = this.data;
     const { tableId } = table;
     const formdef: IFormDef = await this.odkService.getFormdef(tableId);
@@ -72,11 +130,28 @@ export class TableRowEditorDialogComponent implements OnInit {
         }
       }
     });
-    this.fields = fields;
-    const fieldsHashmap = arrayToHashmap(fields, 'name');
-    console.log('fields hashmap', fieldsHashmap);
-    this.formGroup = this.fb.group(fieldsHashmap);
-    this.loading = false;
+    return fields;
+  }
+
+  private buildFormGroupFromFields(fields: ISurveyRowWithValue[]) {
+    const formgroup = new FormGroup({});
+    for (const field of fields) {
+      // TODO - could add validators (but might want a way user can disable first)
+      // TODO - handle serialisation of select multiple
+      formgroup.addControl(field.name, new FormControl(field.value, []));
+    }
+    return formgroup;
+  }
+
+  private _subscribeToFormChanges() {
+    this.formChanges$ = new Subscription();
+    Object.entries(this.formGroup.controls).forEach(([name, control]) => {
+      const subscription = control.valueChanges.subscribe((v) => {
+        const isChanged = v !== this.initialValues[name];
+        this.fieldsChanged[name] = isChanged;
+      });
+      this.formChanges$.add(subscription);
+    });
   }
 }
 

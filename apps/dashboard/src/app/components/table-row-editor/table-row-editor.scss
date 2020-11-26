@@ -1,6 +1,5 @@
 .form-row {
   display: flex;
-  padding: 5px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.2);
 }
 .field-meta {
@@ -14,15 +13,23 @@
   display: flex;
   align-items: center;
 }
+.field-value-meta[data-field-changed='true'] {
+  background: lavender;
+}
 .field-prompt {
   margin-bottom: 8px;
 }
-.field-name {
+.field-name,
+.field-type {
   font-size: small;
   opacity: 0.5;
   font-style: italic;
   word-break: break-word;
-  margin-top: auto;
+  display: flex;
+}
+.field-type {
+  width: 65px;
+  margin-left: 8px;
 }
 .field-value {
   padding: 5px;
@@ -35,4 +42,22 @@
 }
 .field-calc-icon {
   opacity: 0.5;
+  margin-left: auto;
+}
+.edit-undo-button {
+  margin-left: 8px;
+  width: 30px;
+  min-width: unset;
+  padding: 0;
+}
+.form-container {
+  overflow-x: hidden;
+}
+
+select {
+  width: 100%;
+}
+input,
+textarea {
+  width: calc(100% - 8px);
 }

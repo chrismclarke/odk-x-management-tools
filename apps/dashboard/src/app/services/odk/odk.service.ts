@@ -160,7 +160,6 @@ export class OdkService {
     const formDefPath = `tables/${tableId}/forms/${formId}/formDef.json`;
     const formDef = await this.odkRest.getFile(formDefPath, 2, 'json');
     this._cache[cachePath] = formDef;
-    console.log('formDef', formDef);
     return this.getFormdef(tableId, formId);
   }
 
@@ -185,10 +184,13 @@ export class OdkService {
       });
       rowUpdates.push({ ...rowMeta, orderedColumns });
     });
-    return this.odkRest.alterRows(tableId, schemaETag, {
+    const res = this.odkRest.alterRows(tableId, schemaETag, {
       rows: rowUpdates,
       dataETag,
     });
+    // TODO - handle smoother update of local row data (without refresh)
+    this.refreshActiveTable();
+    return res;
   }
   async backupCurrentTable(backupTableId: string) {
     const { tableId, schemaETag } = this.table$.value;

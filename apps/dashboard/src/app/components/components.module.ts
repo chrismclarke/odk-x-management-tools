@@ -18,7 +18,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatCardModule } from '@angular/material/card';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import {MatProgressSpinnerModule} from "@angular/material/progress-spinner"
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 
 // Custom Components
 import { ServerLoginComponent } from './server-login';
@@ -30,6 +30,8 @@ import {
   TableActionsBackupDialogComponent,
 } from './table-actions';
 import { TableRowEditorDialogComponent } from './table-row-editor/table-row-editor';
+import { InputAttributesDirective } from './table-row-editor/input-attributes.directive';
+import { InputAttributesDisplay } from './table-row-editor/input-attributes-display';
 
 const MAT_COMPONENTS = [
   MatButtonModule,
@@ -46,7 +48,7 @@ const MAT_COMPONENTS = [
   MatDividerModule,
   MatCardModule,
   MatTooltipModule,
-  MatProgressSpinnerModule
+  MatProgressSpinnerModule,
 ];
 
 const CUSTOM_COMPONENTS = [
@@ -57,6 +59,8 @@ const CUSTOM_COMPONENTS = [
   TableActionsDeleteDialogComponent,
   TableActionsBackupDialogComponent,
   TableRowEditorDialogComponent,
+  InputAttributesDirective,
+  InputAttributesDisplay,
 ];
 
 @NgModule({
