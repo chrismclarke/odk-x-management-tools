@@ -39,10 +39,7 @@ export class OdkService {
     this.tableRows$ = new BehaviorSubject(undefined);
     this.userPriviledges$ = new BehaviorSubject(undefined);
     this.odkRest = new OdkRestService((err) => {
-      this.notifications.showMessage(
-        `${err.message} \r\n See console for more info`,
-        'error'
-      );
+      this.notifications.showMessage(`${err.message} \r\n See console for more info`, 'error');
     });
   }
 
@@ -149,6 +146,23 @@ export class OdkService {
     }
     return { ...res, rows: allRows };
   }
+
+  /**
+   * Retrieve json used to define a formdef survey for a given tableId and formId
+   * @param formId - specific form to use, default will use the tableId
+   */
+  async getFormdef(tableId: string, formId?: string) {
+    formId = formId || tableId;
+    const cachePath = `${tableId}/${formId}/formDef.json`;
+    if (this._cache[cachePath]) {
+      return this._cache[cachePath];
+    }
+    const formDefPath = `tables/${tableId}/forms/${formId}/formDef.json`;
+    const formDef = await this.odkRest.getFile(formDefPath, 2, 'json');
+    this._cache[cachePath] = formDef;
+    return this.getFormdef(tableId, formId);
+  }
+
   async updateRows(tableRows: IODK.ITableRow[]) {
     const { tableId, schemaETag, dataETag } = this.table$.value;
     const { resRows } = await this.getTableMeta(this.table$.value);
@@ -170,10 +184,13 @@ export class OdkService {
       });
       rowUpdates.push({ ...rowMeta, orderedColumns });
     });
-    return this.odkRest.alterRows(tableId, schemaETag, {
+    const res = this.odkRest.alterRows(tableId, schemaETag, {
       rows: rowUpdates,
       dataETag,
     });
+    // TODO - handle smoother update of local row data (without refresh)
+    this.refreshActiveTable();
+    return res;
   }
   async backupCurrentTable(backupTableId: string) {
     const { tableId, schemaETag } = this.table$.value;
@@ -195,11 +212,7 @@ export class OdkService {
       return r;
     });
     const rowList = { rows, dataETag: backup.dataETag };
-    const res = await this.odkRest.alterRows(
-      backup.tableId,
-      backup.schemaETag,
-      rowList
-    );
+    const res = await this.odkRest.alterRows(backup.tableId, backup.schemaETag, rowList);
     // TODO - handle response related to row outcomes
     console.log('bakup res', res);
     await this.getAllTables();
