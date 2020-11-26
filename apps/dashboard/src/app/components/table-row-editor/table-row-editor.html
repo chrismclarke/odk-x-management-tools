@@ -1,0 +1,94 @@
+<div style="display: flex; flex-direction: column; height: 100%; overflow: hidden">
+  <h2 mat-dialog-title>Edit Row</h2>
+  <div mat-dialog-content>
+    <div *ngIf="isLoading" style="display: flex; align-items: center">
+      <mat-spinner diameter="50" style="margin-right: 8px"></mat-spinner>
+      <span style="margin-left: 1em">Loading Survey Questions</span>
+    </div>
+    <div *ngIf="!isLoading" class="form-container">
+      <form [formGroup]="formGroup">
+        <div *ngFor="let field of fields; trackBy:trackByFieldName" class="form-row">
+          <div class="field-meta">
+            <div class="field-prompt">{{ field.display?.prompt?.text }}</div>
+            <div class="field-name">{{ field.name }}</div>
+          </div>
+          <div
+            class="field-value-meta"
+            [ngSwitch]="field.type"
+            [attr.data-field-changed]="fieldsChanged[field.name]"
+          >
+            <div style="flex: 1">
+              <!-- Question type handlers -->
+              <input *ngSwitchCase="'text'" [formControlName]="field.name" />
+              <textarea *ngSwitchCase="'textarea'" [formControlName]="field.name"></textarea>
+              <select *ngSwitchCase="'select_one'" [formControlName]="field.name">
+                <option *ngFor="let option of field.select_options" [value]="option.value">
+                  {{option.value}} - {{option.label}}
+                </option>
+              </select>
+              <select *ngSwitchCase="'select_one_dropdown'" [formControlName]="field.name">
+                <option
+                  *ngFor="let option of field.select_options"
+                  [value]="option.value"
+                  [selected]="option.value===field.value"
+                >
+                  {{option.value}} - {{option.label}}
+                </option>
+              </select>
+              <!-- Custom handlebars -->
+              <div>
+                <input
+                  type="number"
+                  *ngSwitchCase="'custom_number'"
+                  [odkxmInputAttributes]="field.inputAttributes"
+                  [formControlName]="field.name"
+                />
+              </div>
+
+              <!-- <select *ngSwitchCase="'select_multiple'" multiple [formControlName]="field.name">
+                <option
+                  *ngFor="let option of field.select_options"
+                  [value]="option.value"
+                  [selected]="field.value && field.value.indexOf(option.value)>-1"
+                >
+                  {{option.value}} - {{option.label}}
+                </option>
+              </select> -->
+
+              <div *ngSwitchCase="'assign'">{{ field.value }}</div>
+              <div *ngSwitchDefault>{{field.value}}</div>
+              <odkxm-input-attributes-display
+                *ngIf="field.inputAttributes"
+                [inputAttributes]="field.inputAttributes"
+              >
+              </odkxm-input-attributes-display>
+            </div>
+            <div class="field-type">
+              <span>{{ field.type }}</span>
+              <mat-icon class="field-calc-icon" *ngIf="field.calculation">calculate</mat-icon>
+            </div>
+            <button
+              class="edit-undo-button"
+              mat-button
+              *ngIf="fieldsChanged[field.name]"
+              (click)="undoEdit(field.name)"
+            >
+              <mat-icon>undo</mat-icon>
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div mat-dialog-actions style="margin-top: auto; margin-left: auto">
+    <button mat-button (click)="cancel()" cdkFocusInitial [disabled]="isSaving">Cancel</button>
+    <button
+      mat-button
+      (click)="saveEdits()"
+      [disabled]="!formGroup || (formGroup && formGroup.pristine) || isSaving"
+    >
+      Save Edits
+    </button>
+  </div>
+</div>

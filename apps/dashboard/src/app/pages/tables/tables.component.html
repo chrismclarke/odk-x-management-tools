@@ -16,7 +16,7 @@
     [rows]="odkService.tableRows$ | async"
     [schema]="odkService.tableSchema$ | async"
     style="display: block; flex: 1"
-    (selectedRowChange)="handleSelectedRowChange()"
+    (selectedRowChange)="handleSelectedRowChange($event)"
     (tableEditsChange)="handleTableEditsChange($event)"
   ></odkxm-table-data>
 </div>

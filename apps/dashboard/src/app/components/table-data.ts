@@ -153,7 +153,7 @@ export class TableDataComponent {
       const { cellEditor, cellEditorParams } = this.getCellEditor(c);
       return {
         field: c.elementKey,
-        editable: c.elementKey.charAt(0) !== '_',
+        // editable: c.elementKey.charAt(0) !== '_',
         cellEditor,
         cellEditorParams,
       };
