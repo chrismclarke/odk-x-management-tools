@@ -4,7 +4,7 @@ import { ITableEdit } from '../../components/table-data';
 import {
   ITableRowEditorData,
   TableRowEditorDialogComponent,
-} from '../../components/table-row-editor';
+} from '../../components/table-row-editor/table-row-editor';
 import { NotificationService } from '../../services/notification.service';
 import { OdkService } from '../../services/odk';
 import { ITableRow } from '../../types/odk.types';
@@ -22,7 +22,8 @@ export class TablesComponent {
   };
   constructor(
     public odkService: OdkService,
-    private notifications: NotificationService
+    private notifications: NotificationService,
+    private dialog:MatDialog
   ) {}
   rowUpdates: ITableRow[] = [];
   updatesProcessing = false;
@@ -62,18 +63,19 @@ export class TablesComponent {
   }
 
   handleSelectedRowChange(rows: ITableRow[]) {
-    // TODO - implement when more feature-rich editor available for full row
     // (currently editing individual cells preserves better data type matching)
-    // console.log('selected row changed', rows);
-    // if (rows[0]) {
-    //   const data: ITableRowEditorData = {
-    //     row: rows[0],
-    //   };
-    //   const dialogRef = this.dialog.open(TableRowEditorDialogComponent, {
-    //     height: '400px',
-    //     width: '600px',
-    //     data,
-    //   });
-    // }
+    console.log('selected row changed', rows);
+    if (rows[0]) {
+      const data: ITableRowEditorData = {
+        row: rows[0],
+        table: this.odkService.table$.value,
+        schema: this.odkService.tableSchema$.value
+      };
+      const dialogRef = this.dialog.open(TableRowEditorDialogComponent, {
+        height: '90vh',
+        width: '90vw',
+        data,
+      });
+    }
   }
 }

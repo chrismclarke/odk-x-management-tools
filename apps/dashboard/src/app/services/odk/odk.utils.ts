@@ -61,6 +61,35 @@ export function convertODKRowsForExport(
 }
 
 /**
+ * Takes an odk form defintion and returns a list of all data fields
+ * identified from the survey alongside their corresponding formdef row data
+ */
+export function extractFormdefPromptsByName(formdef: IODK.IFormDef) {
+  const { xlsx } = formdef;
+  const surveySections = [xlsx.survey];
+  // build complete list of branches
+  for (const row of xlsx.survey) {
+    if (row.branch_label && xlsx.hasOwnProperty(row.branch_label)) {
+      surveySections.push(xlsx[row.branch_label]);
+    }
+  }
+  // create hashmap of all prompts by name
+  const promptsByName: { [name: string]: IODK.ISurveyWorksheetRow } = {};
+  surveySections.forEach((rows) => {
+    rows.forEach((row) => {
+      if (row.name) {
+        promptsByName[row.name] = row;
+      }
+    });
+  });
+  return promptsByName;
+}
+
+export function extractChoicesByName(formdef:IODK.IFormDef){
+  const {} = formdef
+}
+
+/**
  * Generate a UUID in standard format for ODK
  * e.g. uuid:c509cba4-35b4-47ff-b9a3-d52abeb76317
  */

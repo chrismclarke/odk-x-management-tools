@@ -1,0 +1,38 @@
+.form-row {
+  display: flex;
+  padding: 5px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+}
+.field-meta {
+  padding: 5px;
+  flex: 1;
+  border-right: 1px solid rgba(0, 0, 0, 0.2);
+}
+.field-value-meta {
+  padding: 5px;
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+.field-prompt {
+  margin-bottom: 8px;
+}
+.field-name {
+  font-size: small;
+  opacity: 0.5;
+  font-style: italic;
+  word-break: break-word;
+  margin-top: auto;
+}
+.field-value {
+  padding: 5px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.mat-dialog-content {
+  max-height: unset;
+}
+.field-calc-icon {
+  opacity: 0.5;
+}

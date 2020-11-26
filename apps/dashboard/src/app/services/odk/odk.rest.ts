@@ -1,5 +1,6 @@
 import * as IODK from '../../types/odk.types';
 import { AxiosHttpService, IErrorHandler } from './http';
+import {ResponseType} from 'axios'
 
 /**
  * Common methods for interacting with ODK rest
@@ -59,9 +60,9 @@ class OdkRestApi {
     return this.http.get<{ files: IODK.IManifestItem[] }>(path);
   }
 
-  getFile(filepath: string, odkClientVersion = 2) {
+  getFile(filepath: string, odkClientVersion = 2, responseType: ResponseType = 'arraybuffer') {
     const path = `default/files/${odkClientVersion}/${filepath}?as_attachment=false`;
-    return this.http.get<Buffer>(path, { responseType: 'arraybuffer' });
+    return this.http.get<Buffer  | any>(path, { responseType });
   }
 
   getTableIdFileManifest(tableId: string, odkClientVersion = 2) {

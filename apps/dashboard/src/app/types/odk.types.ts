@@ -174,3 +174,100 @@ export interface IUploadRowList {
   rows: IUploadTableRow[];
   dataETag: string;
 }
+
+
+/********************************************************************
+ * Copied from cwbc-odkx-app survey-parser
+ ********************************************************************/
+export interface IFormDef {
+  xlsx: IFormDefWorksheets;
+  specification: IFormDefSpecification;
+}
+
+// https://docs.odk-x.org/xlsx-converter-reference/#excel-worksheets
+interface IFormDefWorksheets {
+  // mandatory worksheets
+  survey: ISurveyWorksheetRow[];
+  settings: any;
+  // optional worksheets
+  properties?: any;
+  calculates?: any;
+  choices?: any;
+  model?: any;
+  queries?: any;
+  column_types?: any;
+  prompt_types?: any;
+  framework_translations?: any;
+  common_translations?: any;
+  table_specific_translations?: any;
+  // additional worksheets can be referenced by name
+  [userDefinedSection: string]: ISurveyWorksheetRow[];
+}
+
+export interface ISurveyWorksheetRow {
+  // populated metadata
+  _row_num: number;
+  // core inputs, compulsory on form but might be removed from formDef
+  type?: string;
+  name?: string;
+  display?: {
+    prompt?:
+      | string
+      | {
+          text?: string;
+          audio?: string;
+          image?: string;
+          video?: string;
+        };
+    title?: ITranslatableText;
+    constraint_message?: ITranslatableText;
+    hint?: ITranslatableText;
+  };
+  // additional inputs
+  branch_label?: string;
+  calculation?: string;
+  choice_filter?: string;
+  clause?: string;
+  comments?: string;
+  condition?: string;
+  constraint?: string;
+  default?: string;
+  hideInContents?: string;
+  inputAttributes?: {
+    [attribute: string]: string;
+  };
+  isSessionVariable?: string;
+  required?: string;
+  templatePath?: string;
+  values_list?: string;
+  // not included in docs but still exists
+  screen?: {
+    screen_type?: string;
+  };
+}
+type ISurveyRowKey = keyof ISurveyWorksheetRow;
+// translations can be provided by a reference or direct text
+type ITranslatableText = "string" | { text: string };
+
+interface IFormDefSpecification {
+  calculates: any;
+  choices: {
+    [choice_list_name: string]: IFormDefSpecificationChoice[];
+  };
+  column_types: any;
+  common_definitions: any;
+  dataTableModel: any;
+  framework_definitions: any;
+  model: any;
+  properties: any[];
+  queries: any;
+  section_names: string[];
+  sections: any;
+  settings: any;
+}
+export interface IFormDefSpecificationChoice {
+  choice_list_name: string;
+  data_value: string;
+  display: { title: { text: string } };
+  _row_num: number;
+}
