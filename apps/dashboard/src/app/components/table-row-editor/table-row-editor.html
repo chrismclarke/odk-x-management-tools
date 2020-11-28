@@ -37,13 +37,13 @@
               {{option.value}} - {{option.label}}
             </option>
           </select>
-          <input
+          <odkxm-prompt-integer
             type="number"
             *ngSwitchCase="'integer'"
-            odkxmInputStep
+            step="1"
             [odkxmInputAttributes]="field.inputAttributes"
             [formControlName]="field.name"
-          />
+          ></odkxm-prompt-integer>
 
           <!-- Custom handlebars -->
           <div>

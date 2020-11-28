@@ -83,11 +83,9 @@ export class TableRowEditorDialogComponent implements AfterViewInit, OnDestroy {
   }
 
   ngAfterViewInit() {
-    console.log('table row editor', this.data);
     this.init();
   }
   ngOnDestroy() {
-    console.log('destroy', this.formChanges$);
     this.formChanges$.unsubscribe();
   }
   undoEdit(fieldname: string) {
