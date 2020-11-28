@@ -52,6 +52,7 @@
 }
 .form-container {
   overflow-x: hidden;
+  overflow-y: auto;
 }
 
 select {
@@ -60,4 +61,8 @@ select {
 input,
 textarea {
   width: calc(100% - 8px);
+}
+
+input:invalid {
+  border: 2px solid #fb8585;
 }

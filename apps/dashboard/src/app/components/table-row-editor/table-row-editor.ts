@@ -1,4 +1,12 @@
-import { AfterViewInit, Component, Inject, OnDestroy, OnInit } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  Inject,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
 import { FormControl, FormGroup } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { Subscription } from 'rxjs';
@@ -24,11 +32,12 @@ import {
   templateUrl: './table-row-editor.html',
 })
 export class TableRowEditorDialogComponent implements AfterViewInit, OnDestroy {
+  @ViewChild('formEl', { static: false }) formEl: ElementRef<HTMLDivElement>;
   isLoading = true;
   isSaving = false;
   initialValues: { [fieldname: string]: string };
-  fields: ISurveyRowWithValue[];
-  formGroup: FormGroup;
+  fields: ISurveyRowWithValue[] = [];
+  formGroup: FormGroup = new FormGroup({});
   formChanges$: Subscription;
   /** Keep list of fields that have changed for css styling */
   fieldsChanged: { [name: string]: boolean } = {};
@@ -42,6 +51,7 @@ export class TableRowEditorDialogComponent implements AfterViewInit, OnDestroy {
   cancel() {
     this.dialogRef.close();
   }
+
   async saveEdits() {
     this.isSaving = true;
     const updatedValues = this.formGroup.value;
@@ -86,17 +96,35 @@ export class TableRowEditorDialogComponent implements AfterViewInit, OnDestroy {
   }
 
   private async init() {
-    this.fields = await this.getFieldsFromFormDef();
+    const fields = await this.getFieldsFromFormDef();
+    this.fields = fields;
     console.log('fields', arrayToHashmap(this.fields, 'name'));
     this.formGroup = this.buildFormGroupFromFields(this.fields);
     this.initialValues = this.formGroup.value;
     console.log('initialValues', this.initialValues);
     this._subscribeToFormChanges();
     this.isLoading = false;
+    setTimeout(() => {
+      this.scrollToField(this.data.colId);
+    }, 50);
   }
 
   public trackByFieldName(index: number, field: ISurveyRowWithValue) {
     return field.name;
+  }
+
+  private scrollToField(fieldname: string) {
+    const formEl = this.formEl.nativeElement;
+    formEl.scrollTop = 0;
+    const scrollTarget = formEl.querySelector(`#field-container-${fieldname}`) as HTMLDivElement;
+    if (scrollTarget) {
+      // manual implementation instead of scrollIntoView as seems inconsistent
+      // adjustment for other inconsistencies, not really sure why...
+      formEl.scroll({
+        top: scrollTarget.offsetTop - 119,
+        behavior: 'smooth',
+      });
+    }
   }
 
   /**
@@ -175,6 +203,8 @@ interface ISurveyRowWithValue extends ISurveyWorksheetRow {
 }
 export interface ITableRowEditorData {
   row: ITableRow;
+  /** field id user clicked when opening editor, for scrolling */
+  colId: string;
   table: ITableMeta;
   schema: ITableSchema;
 }
