@@ -1,5 +1,4 @@
 import { ElementRef, Input } from '@angular/core';
-
 import { Directive } from '@angular/core';
 
 /**

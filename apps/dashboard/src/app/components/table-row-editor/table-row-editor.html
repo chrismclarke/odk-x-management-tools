@@ -21,41 +21,42 @@
       >
         <div style="flex: 1">
           <!-- Question type handlers -->
-          <input *ngSwitchCase="'text'" [formControlName]="field.name" />
-          <textarea *ngSwitchCase="'textarea'" [formControlName]="field.name"></textarea>
-          <select *ngSwitchCase="'select_one'" [formControlName]="field.name">
-            <option *ngFor="let option of field.select_options" [value]="option.value">
-              {{option.value}} - {{option.label}}
-            </option>
-          </select>
-          <select *ngSwitchCase="'select_one_dropdown'" [formControlName]="field.name">
-            <option
-              *ngFor="let option of field.select_options"
-              [value]="option.value"
-              [selected]="option.value===field.value"
-            >
-              {{option.value}} - {{option.label}}
-            </option>
-          </select>
-          <odkxm-prompt-integer
-            type="number"
-            *ngSwitchCase="'integer'"
-            step="1"
-            [odkxmInputAttributes]="field.inputAttributes"
-            [formControlName]="field.name"
-          ></odkxm-prompt-integer>
-
-          <!-- Custom handlebars -->
-          <div>
-            <input
-              type="number"
-              *ngSwitchCase="'custom_number'"
-              [odkxmInputAttributes]="field.inputAttributes"
+          <div class="field-input-container">
+            <input *ngSwitchCase="'text'" [formControlName]="field.name" />
+            <textarea *ngSwitchCase="'textarea'" [formControlName]="field.name"></textarea>
+            <select *ngSwitchCase="'select_one'" [formControlName]="field.name">
+              <option *ngFor="let option of field.select_options" [value]="option.value">
+                {{option.value}} - {{option.label}}
+              </option>
+            </select>
+            <select *ngSwitchCase="'select_one_dropdown'" [formControlName]="field.name">
+              <option
+                *ngFor="let option of field.select_options"
+                [value]="option.value"
+                [selected]="option.value===field.value"
+              >
+                {{option.value}} - {{option.label}}
+              </option>
+            </select>
+            <odkxm-prompt-integer
+              *ngSwitchCase="'integer'"
+              [odkxColumns]="field"
               [formControlName]="field.name"
-            />
-          </div>
+              style="width: 100%"
+            ></odkxm-prompt-integer>
 
-          <!-- <select *ngSwitchCase="'select_multiple'" multiple [formControlName]="field.name">
+            <!-- Custom handlebars -->
+            <cwbc-custom-date-picker *ngSwitchCase="'custom_date_picker'"></cwbc-custom-date-picker>
+            <div>
+              <input
+                type="number"
+                *ngSwitchCase="'custom_number'"
+                [odkxmInputAttributes]="field.inputAttributes"
+                [formControlName]="field.name"
+              />
+            </div>
+
+            <!-- <select *ngSwitchCase="'select_multiple'" multiple [formControlName]="field.name">
                 <option
                   *ngFor="let option of field.select_options"
                   [value]="option.value"
@@ -65,8 +66,10 @@
                 </option>
               </select> -->
 
-          <div *ngSwitchCase="'assign'">{{ field.value }}</div>
-          <div *ngSwitchDefault>{{field.value}}</div>
+            <div *ngSwitchCase="'assign'">{{ field.value }}</div>
+            <div *ngSwitchDefault>{{field.value}}</div>
+          </div>
+          <!-- Additional input attributes metadata -->
           <odkxm-input-attributes-display
             *ngIf="field.inputAttributes"
             [inputAttributes]="field.inputAttributes"

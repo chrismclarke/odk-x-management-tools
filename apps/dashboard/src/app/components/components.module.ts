@@ -30,9 +30,8 @@ import {
   TableActionsBackupDialogComponent,
 } from './table-actions';
 import { TableRowEditorDialogComponent } from './table-row-editor/table-row-editor';
-import { InputAttributesDirective } from './table-row-editor/input-attributes.directive';
 import { InputAttributesDisplay } from './table-row-editor/input-attributes-display';
-import { ODKXPromptsModule } from './table-row-editor/prompts/odkx-prompts.module';
+import { ODKXPromptsModule } from './table-row-editor/prompts/prompts.module';
 
 const MAT_COMPONENTS = [
   MatButtonModule,
@@ -60,7 +59,6 @@ const CUSTOM_COMPONENTS = [
   TableActionsDeleteDialogComponent,
   TableActionsBackupDialogComponent,
   TableRowEditorDialogComponent,
-  InputAttributesDirective,
   InputAttributesDisplay,
 ];
 

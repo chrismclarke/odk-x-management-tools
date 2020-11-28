@@ -3,7 +3,6 @@ import { ControlValueAccessor } from '@angular/forms';
 import { ISurveyWorksheetRow } from '../../../types/odk.types';
 
 @Component({
-  selector: 'odkxm-prompt-integer',
   template: ``,
 })
 /**
@@ -14,7 +13,7 @@ import { ISurveyWorksheetRow } from '../../../types/odk.types';
  */
 export class PromptBase implements ControlValueAccessor {
   disabled = false;
-  @Input() prompt: Partial<ISurveyWorksheetRow> = {}; // question object passed to the component
+  @Input() odkxColumns: Partial<ISurveyWorksheetRow> = {}; // question object passed to the component
 
   /** local variable for tracking value and comparisons */
   private _val: any = null;
@@ -25,13 +24,9 @@ export class PromptBase implements ControlValueAccessor {
    *  Extendable methods
    *******************************************************************************************/
 
-  /** Apply changes to value prior to propagation */
-  transformValue(val: any) {
+  /** Apply changes to value prior to propagation. Note, does not apply to null values */
+  transformValue(val: string): any {
     return val;
-  }
-  /** Optional functions to perform after changes have been propagated  */
-  afterChange(val: any) {
-    return;
   }
 
   /*******************************************************************************************
@@ -40,18 +35,15 @@ export class PromptBase implements ControlValueAccessor {
 
   @Input()
   set value(value: any) {
-    const transformedValue = this.transformValue(value);
-    if (this._val !== transformedValue) {
-      this._val = transformedValue;
-      this.onChange(transformedValue);
-      this.onTouch(transformedValue);
-      this.afterChange(transformedValue);
-    } else {
-      // notify any parent that the value received has already been transformed
-      // (but perhaps not updated in parent component - input box might require manual change)
-      if (transformedValue !== value) {
-        this.afterChange(transformedValue);
-      }
+    // transform any non-null values using specified modifiers
+    if (value !== null) {
+      value = this.transformValue(value);
+    }
+    // propagate any changes to listeners
+    if (this._val !== value) {
+      this._val = value;
+      this.onChange(value);
+      this.onTouch(value);
     }
   }
   get value() {
@@ -64,7 +56,7 @@ export class PromptBase implements ControlValueAccessor {
 
   // programmatically writing the value
   writeValue(value: any) {
-    this.value = Math.round(Number(value));
+    this.value = this.transformValue(value);
   }
   // method to be triggered on UI change
   registerOnChange = (fn: any) => (this.onChange = fn);

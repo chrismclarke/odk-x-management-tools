@@ -6,17 +6,23 @@ import {
   ViewChild,
 } from '@angular/core';
 import { NG_VALUE_ACCESSOR } from '@angular/forms';
-import { PromptBase } from './base';
+import { PromptBase } from '../base';
 
 @Component({
   selector: 'odkxm-prompt-integer',
-  template: `<input
-    #promptInput
-    type="number"
-    [disabled]="disabled"
-    [(ngModel)]="value"
-    step="1"
-  />`,
+  template: ` <div style="display:flex">
+    <input
+      #promptInput
+      type="number"
+      [disabled]="disabled"
+      [(ngModel)]="value"
+      step="1"
+      [odkxmInputAttributes]="odkxColumns.inputAttributes"
+      style="flex:1"
+    />
+  </div>`,
+  styleUrls: ['../prompts.scss'],
+  styles: [``],
   // necessary form value bindings
   providers: [
     {
@@ -31,19 +37,13 @@ class Integer extends PromptBase {
   @ViewChild('promptInput') promptInput: ElementRef<HTMLInputElement>;
 
   /** Convert to number and round to nearest integer */
-  transformValue(val: any) {
-    // null values
-    if (val === null) {
-      return null;
-    } else {
-      return Math.round(Number(val));
-    }
-  }
-  /** Update input element value when transformed programtically */
-  afterChange(value: any) {
+  transformValue(val: string) {
+    const transformed = Math.round(Number(val));
     if (this.promptInput) {
-      this.promptInput.nativeElement.value = value;
+      // also reflect any transformations back to input element
+      this.promptInput.nativeElement.value = transformed as any;
     }
+    return transformed;
   }
 }
 
