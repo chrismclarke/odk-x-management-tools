@@ -46,7 +46,10 @@
             ></odkxm-prompt-integer>
 
             <!-- Custom handlebars -->
-            <cwbc-custom-date-picker *ngSwitchCase="'custom_date_picker'"></cwbc-custom-date-picker>
+            <cwbc-custom-date-picker
+              *ngSwitchCase="'custom_date_picker'"
+              [formControlName]="field.name"
+            ></cwbc-custom-date-picker>
             <div>
               <input
                 type="number"

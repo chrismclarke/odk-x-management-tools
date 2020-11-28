@@ -36,13 +36,6 @@ import { PromptBase } from '../base';
 class CustomDatePicker extends PromptBase {
   @ViewChild('promptInput') promptInput: ElementRef<HTMLInputElement>;
 
-  /** Convert to number and round to nearest integer */
-  transformValue(val: any) {
-    const d = new Date(val);
-    console.log('transform date', val, d);
-    return formatDateForInput(d);
-  }
-
   setToday() {
     const today = formatDateForInput();
     this.value = today;
