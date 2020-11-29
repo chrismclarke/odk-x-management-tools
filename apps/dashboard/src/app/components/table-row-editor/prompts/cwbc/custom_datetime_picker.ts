@@ -18,7 +18,6 @@ import { ODKXPromptBase } from '../base';
         type="datetime-local"
         [value]="setValue(value)"
         (change)="updateValue(promptInput.value)"
-        style="flex:1"
         [step]="60"
       />
       <button (click)="setNow()">Now</button>

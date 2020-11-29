@@ -18,7 +18,6 @@ import { ODKXPromptBase } from '../base';
       [(ngModel)]="value"
       step="1"
       [odkxmInputAttributes]="odkxColumns.inputAttributes"
-      style="flex:1"
     />
   </div>`,
   styleUrls: ['../prompts.scss'],
@@ -27,13 +26,13 @@ import { ODKXPromptBase } from '../base';
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => ODKXPromptInteger),
+      useExisting: forwardRef(() => Integer),
       multi: true,
     },
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ODKXPromptInteger extends ODKXPromptBase {
+export class Integer extends ODKXPromptBase {
   @ViewChild('inputEl') inputEl: ElementRef<HTMLInputElement>;
   /** Convert to number and round to nearest integer */
   parseValue = (val: string) => {

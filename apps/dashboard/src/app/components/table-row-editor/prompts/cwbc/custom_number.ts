@@ -16,7 +16,6 @@ import { ODKXPromptBase } from '../base';
         type="number"
         [odkxmInputAttributes]="odkxColumns.inputAttributes"
         [(ngModel)]="value"
-        style="flex:1"
       />
       <button
         (click)="handleIDK()"

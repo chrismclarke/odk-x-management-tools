@@ -12,12 +12,7 @@ import { ODKXPromptBase } from '../base';
   selector: 'cwbc-custom-date-picker',
   template: ` <div style="display:flex">
     <div class="input-container">
-      <input
-        [odkxmInputAttributes]="odkxColumns.inputAttributes"
-        type="date"
-        [(ngModel)]="value"
-        style="flex:1"
-      />
+      <input [odkxmInputAttributes]="odkxColumns.inputAttributes" type="date" [(ngModel)]="value" />
       <button (click)="setToday()">Today</button>
     </div>
   </div>`,

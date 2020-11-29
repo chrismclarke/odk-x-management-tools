@@ -2,6 +2,7 @@ import { AfterViewInit, Component, ElementRef, Inject, OnDestroy, ViewChild } fr
 import { FormControl, FormGroup } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { Subscription } from 'rxjs';
+import { arrayToHashmap, objectFilter } from '../../utils/utils';
 import { NotificationService } from '../../services/notification.service';
 import { OdkService } from '../../services/odk';
 import { extractFormdefPromptsByName } from '../../services/odk/odk.utils';
@@ -59,17 +60,22 @@ export class TableRowEditorDialogComponent implements AfterViewInit, OnDestroy {
       });
     console.table(summary);
     const res = await this.odkService.updateRows([updatedRow]);
-    console.log('save response', res);
-
     // handle response
     if (res.rows[0].outcome === 'SUCCESS') {
       this.notifications.showMessage(`save - ${res.rows[0].outcome}`, 'success', {
         duration: 2000,
       });
-      // reset form state
+      // Update locally stored metadata
+      // TODO - this is duplicated form updates done in service, so could probably just pass back somehow
+      this.data.row = {
+        ...this.data.row,
+        _data_etag_at_modification: res.dataETag,
+        _row_etag: res.rows[0].rowETag,
+      };
+      // Re-initialised value change tracking
       this.fieldsChanged = {};
       this.initialValues = updatedValues;
-      this.formGroup.reset(updatedValues);
+      this.formGroup.reset(this.initialValues);
     } else {
       // TODO - handle partial success
       this.notifications.showMessage(`save - ${res.rows[0].outcome}`, 'error', { duration: 3500 });
@@ -176,20 +182,6 @@ export class TableRowEditorDialogComponent implements AfterViewInit, OnDestroy {
       this.formChanges$.add(subscription);
     });
   }
-}
-
-/**
- * Convert an object array into a json object, with keys corresponding to array entries
- * @param keyfield any unique field which all array objects contain to use as hash keys (e.g. 'id')
- */
-function arrayToHashmap<T>(arr: T[], keyfield: string) {
-  const hashmap: { [key: string]: T } = {};
-  for (const el of arr) {
-    if (el.hasOwnProperty(keyfield)) {
-      hashmap[el[keyfield]] = el;
-    }
-  }
-  return hashmap;
 }
 
 interface ISurveyRowWithValue extends ISurveyWorksheetRow {

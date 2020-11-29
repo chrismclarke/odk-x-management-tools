@@ -42,8 +42,13 @@
               *ngSwitchCase="'integer'"
               [odkxColumns]="field"
               [formControlName]="field.name"
-              style="width: 100%"
             ></odkxm-prompt-integer>
+            <odkxm-prompt-time
+              *ngSwitchCase="'time'"
+              [odkxColumns]="field"
+              [formControlName]="field.name"
+            >
+            </odkxm-prompt-time>
 
             <!-- Custom Prompt Types (CWBC-specific) -->
             <cwbc-custom-date-picker
