@@ -11,7 +11,7 @@ import { ISurveyWorksheetRow } from '../../../types/odk.types';
  * https://indepth.dev/never-again-be-confused-when-implementing-controlvalueaccessor-in-angular-forms
  * https://medium.com/@ozak/stop-repeating-yourself-in-angular-how-to-create-abstract-components-9726d43c99ab
  */
-export class PromptBase implements ControlValueAccessor {
+export class ODKXPromptBase implements ControlValueAccessor {
   disabled = false;
   @Input() odkxColumns: Partial<ISurveyWorksheetRow> = {}; // question object passed to the component
 
@@ -56,7 +56,11 @@ export class PromptBase implements ControlValueAccessor {
 
   // programmatically writing the value
   writeValue(value: any) {
-    this.value = this.transformValue(value);
+    // transform any non-null values using specified modifiers
+    if (value !== null) {
+      value = this.transformValue(value);
+    }
+    this.value = value;
   }
   // method to be triggered on UI change
   registerOnChange = (fn: any) => (this.onChange = fn);

@@ -8,14 +8,10 @@ import { AppComponent } from './app.component';
 import { ComponentsModule } from './components/components.module';
 
 import { ConnectionComponent, TablesComponent, ExportComponent } from './pages';
+import { MaterialComponentsModule } from './components/material-components.module';
 
 @NgModule({
-  declarations: [
-    AppComponent,
-    ConnectionComponent,
-    TablesComponent,
-    ExportComponent,
-  ],
+  declarations: [AppComponent, ConnectionComponent, TablesComponent, ExportComponent],
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
@@ -23,6 +19,7 @@ import { ConnectionComponent, TablesComponent, ExportComponent } from './pages';
     ReactiveFormsModule,
     ComponentsModule,
     AppRoutingModule,
+    MaterialComponentsModule,
   ],
   providers: [],
   bootstrap: [AppComponent],

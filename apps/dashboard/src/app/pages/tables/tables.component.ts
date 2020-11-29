@@ -1,6 +1,5 @@
 import { Component } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
-import { ITableEdit } from '../../components/table-data';
 import {
   ITableRowEditorData,
   TableRowEditorDialogComponent,

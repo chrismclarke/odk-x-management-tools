@@ -6,7 +6,7 @@ import {
   ViewChild,
 } from '@angular/core';
 import { NG_VALUE_ACCESSOR } from '@angular/forms';
-import { PromptBase } from '../base';
+import { ODKXPromptBase } from '../base';
 
 @Component({
   selector: 'cwbc-custom-date-picker',
@@ -16,13 +16,8 @@ import { PromptBase } from '../base';
       <button (click)="setToday()">Today</button>
     </div>
   </div>`,
-  styles: [
-    `
-      host: {
-        display: block;
-      }
-    `,
-  ],
+  styleUrls: ['../prompts.scss'],
+  styles: [],
   // necessary form value bindings
   providers: [
     {
@@ -33,7 +28,7 @@ import { PromptBase } from '../base';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-class CustomDatePicker extends PromptBase {
+export class CustomDatePicker extends ODKXPromptBase {
   @ViewChild('promptInput') promptInput: ElementRef<HTMLInputElement>;
 
   setToday() {
@@ -47,5 +42,3 @@ function formatDateForInput(d = new Date()) {
     return n < 10 ? '0' + n : n;
   }
 }
-
-export default CustomDatePicker;

@@ -6,7 +6,7 @@ import {
   ViewChild,
 } from '@angular/core';
 import { NG_VALUE_ACCESSOR } from '@angular/forms';
-import { PromptBase } from '../base';
+import { ODKXPromptBase } from '../base';
 
 @Component({
   selector: 'odkxm-prompt-integer',
@@ -27,13 +27,13 @@ import { PromptBase } from '../base';
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => Integer),
+      useExisting: forwardRef(() => ODKXPromptInteger),
       multi: true,
     },
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-class Integer extends PromptBase {
+export class ODKXPromptInteger extends ODKXPromptBase {
   @ViewChild('promptInput') promptInput: ElementRef<HTMLInputElement>;
 
   /** Convert to number and round to nearest integer */
@@ -46,5 +46,3 @@ class Integer extends PromptBase {
     return transformed;
   }
 }
-
-export default Integer;

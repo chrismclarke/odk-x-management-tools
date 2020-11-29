@@ -45,19 +45,17 @@
               style="width: 100%"
             ></odkxm-prompt-integer>
 
-            <!-- Custom handlebars -->
+            <!-- Custom Prompt Types (CWBC-specific) -->
             <cwbc-custom-date-picker
               *ngSwitchCase="'custom_date_picker'"
               [formControlName]="field.name"
+              [odkxColumns]="field"
             ></cwbc-custom-date-picker>
-            <div>
-              <input
-                type="number"
-                *ngSwitchCase="'custom_number'"
-                [odkxmInputAttributes]="field.inputAttributes"
-                [formControlName]="field.name"
-              />
-            </div>
+            <cwbc-custom-number
+              *ngSwitchCase="'custom_number'"
+              [formControlName]="field.name"
+              [odkxColumns]="field"
+            ></cwbc-custom-number>
 
             <!-- <select *ngSwitchCase="'select_multiple'" multiple [formControlName]="field.name">
                 <option

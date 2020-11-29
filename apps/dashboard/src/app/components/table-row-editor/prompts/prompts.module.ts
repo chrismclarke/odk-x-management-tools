@@ -1,13 +1,13 @@
 import { CommonModule } from '@angular/common';
 import { NgModule } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { PromptBase } from './base';
+import { ODKXPromptBase } from './base';
 import { InputAttributesDirective } from './directives/input-attributes.directive';
-import Integer from './odkx/integer';
-import CustomDatePicker from './cwbc/custom_date_picker';
+import { ODKXPromptInteger } from './odkx/integer';
+import * as CWBC from './cwbc';
 
-const ODKXPrompts = [PromptBase, Integer];
-const CWBCPrompts = [CustomDatePicker];
+const ODKXPrompts = [ODKXPromptBase, ODKXPromptInteger];
+const CWBCPrompts = [CWBC.CustomDatePicker, CWBC.CustomNumber];
 const ODKXDirectives = [InputAttributesDirective];
 
 @NgModule({

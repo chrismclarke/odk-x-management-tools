@@ -21,12 +21,10 @@
             "polyfills": "apps/dashboard/src/polyfills.ts",
             "tsConfig": "apps/dashboard/tsconfig.app.json",
             "aot": true,
-            "assets": [
-              "apps/dashboard/src/favicon.ico",
-              "apps/dashboard/src/assets"
-            ],
+            "assets": ["apps/dashboard/src/favicon.ico", "apps/dashboard/src/assets"],
             "styles": ["apps/dashboard/src/styles.scss"],
-            "scripts": []
+            "scripts": [],
+            "allowedCommonJsDependencies": ["axios"]
           },
           "configurations": {
             "production": {
@@ -79,10 +77,7 @@
         "lint": {
           "builder": "@angular-devkit/build-angular:tslint",
           "options": {
-            "tsConfig": [
-              "apps/dashboard/tsconfig.app.json",
-              "apps/dashboard/tsconfig.spec.json"
-            ],
+            "tsConfig": ["apps/dashboard/tsconfig.app.json", "apps/dashboard/tsconfig.spec.json"],
             "exclude": ["**/node_modules/**", "!apps/dashboard/**/*"]
           }
         },
@@ -160,10 +155,7 @@
         "lint": {
           "builder": "@angular-devkit/build-angular:tslint",
           "options": {
-            "tsConfig": [
-              "apps/api/tsconfig.app.json",
-              "apps/api/tsconfig.spec.json"
-            ],
+            "tsConfig": ["apps/api/tsconfig.app.json", "apps/api/tsconfig.spec.json"],
             "exclude": ["**/node_modules/**", "!apps/api/**/*"]
           }
         },
