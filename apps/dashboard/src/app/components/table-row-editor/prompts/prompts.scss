@@ -1,5 +1,11 @@
 :host {
   display: block;
+  width: 100%;
+}
+.input-container {
+  display: flex;
+  align-items: center;
+  width: 100%;
 }
 input:invalid {
   border: 2px solid #fb8585;

@@ -10,12 +10,13 @@ import { ODKXPromptBase } from '../base';
 
 @Component({
   selector: 'cwbc-custom-number',
-  template: ` <div style="display:flex">
+  template: `
     <div class="input-container">
       <input
         type="number"
         [odkxmInputAttributes]="odkxColumns.inputAttributes"
         [(ngModel)]="value"
+        style="flex:1"
       />
       <button
         (click)="handleIDK()"
@@ -24,7 +25,7 @@ import { ODKXPromptBase } from '../base';
         Don't Know
       </button>
     </div>
-  </div>`,
+  `,
   styleUrls: ['../prompts.scss'],
   styles: [],
   // necessary form value bindings
@@ -40,10 +41,8 @@ import { ODKXPromptBase } from '../base';
 export class CustomNumber extends ODKXPromptBase {
   @ViewChild('promptInput') promptInput: ElementRef<HTMLInputElement>;
 
-  transformValue(v: any) {
-    console.log('transform custom number', v, Number(v));
-    return Number(v);
-  }
+  parseValue = (v: any) => Number(v);
+
   /** Set 'I don't know' value of -99 */
   handleIDK() {
     this.value = -99;

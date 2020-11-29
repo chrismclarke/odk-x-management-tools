@@ -10,9 +10,9 @@ import { ODKXPromptBase } from '../base';
 
 @Component({
   selector: 'odkxm-prompt-integer',
-  template: ` <div style="display:flex">
+  template: ` <div class="input-container">
     <input
-      #promptInput
+      #inputEl
       type="number"
       [disabled]="disabled"
       [(ngModel)]="value"
@@ -34,15 +34,15 @@ import { ODKXPromptBase } from '../base';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ODKXPromptInteger extends ODKXPromptBase {
-  @ViewChild('promptInput') promptInput: ElementRef<HTMLInputElement>;
-
+  @ViewChild('inputEl') inputEl: ElementRef<HTMLInputElement>;
   /** Convert to number and round to nearest integer */
-  transformValue(val: string) {
-    const transformed = Math.round(Number(val));
-    if (this.promptInput) {
-      // also reflect any transformations back to input element
-      this.promptInput.nativeElement.value = transformed as any;
+  parseValue = (val: string) => {
+    const parsed = Math.round(Number(val));
+    // when parsing ensure the value is reflected to input element in cases where parsed
+    // value does not change, e.g. 8 -> 8.1 (should get rounded back down on the input element)
+    if (this.inputEl) {
+      this.inputEl.nativeElement.value = parsed as any;
     }
-    return transformed;
-  }
+    return parsed;
+  };
 }

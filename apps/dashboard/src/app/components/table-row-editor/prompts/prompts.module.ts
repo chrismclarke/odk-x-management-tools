@@ -7,7 +7,7 @@ import { ODKXPromptInteger } from './odkx/integer';
 import * as CWBC from './cwbc';
 
 const ODKXPrompts = [ODKXPromptBase, ODKXPromptInteger];
-const CWBCPrompts = [CWBC.CustomDatePicker, CWBC.CustomNumber];
+const CWBCPrompts = [CWBC.CustomDatePicker, CWBC.CustomNumber, CWBC.CustomDatetimePicker];
 const ODKXDirectives = [InputAttributesDirective];
 
 @NgModule({

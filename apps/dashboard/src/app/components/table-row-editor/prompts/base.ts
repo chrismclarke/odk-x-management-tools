@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { ChangeDetectorRef, Component, Input } from '@angular/core';
 import { ControlValueAccessor } from '@angular/forms';
 import { ISurveyWorksheetRow } from '../../../types/odk.types';
 
@@ -18,16 +18,14 @@ export class ODKXPromptBase implements ControlValueAccessor {
   /** local variable for tracking value and comparisons */
   private _val: any = null;
 
-  constructor() {}
+  constructor(private cdr: ChangeDetectorRef) {}
 
   /*******************************************************************************************
    *  Extendable methods
    *******************************************************************************************/
 
-  /** Apply changes to value prior to propagation. Note, does not apply to null values */
-  transformValue(val: string): any {
-    return val;
-  }
+  /** Apply changes to value received from form, e.g. convert input string to number */
+  parseValue: (val: any) => any = null;
 
   /*******************************************************************************************
    *  Form and Control Bindings
@@ -36,30 +34,33 @@ export class ODKXPromptBase implements ControlValueAccessor {
   @Input()
   set value(value: any) {
     // transform any non-null values using specified modifiers
-    if (value !== null) {
-      value = this.transformValue(value);
+    if (value !== null && this.parseValue) {
+      value = this.parseValue(value);
     }
     // propagate any changes to listeners
     if (this._val !== value) {
       this._val = value;
+      // update form listeners
       this.onChange(value);
       this.onTouch(value);
+      // ensure that components setting values are also aware if the value has changed
+      this.detectChanges();
     }
   }
   get value() {
     return this._val;
   }
 
+  public detectChanges() {
+    return this.cdr.detectChanges();
+  }
+
   // triggered functions called from form or model bindings
   private onChange: (val: any) => void = () => null;
   private onTouch: (val: any) => void = () => null;
 
-  // programmatically writing the value
+  // programmatically writing the value, call setter above
   writeValue(value: any) {
-    // transform any non-null values using specified modifiers
-    if (value !== null) {
-      value = this.transformValue(value);
-    }
     this.value = value;
   }
   // method to be triggered on UI change

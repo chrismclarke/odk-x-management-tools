@@ -35,9 +35,12 @@ export class InputAttributesDisplay implements OnInit {
   constructor() {}
 
   ngOnInit() {
-    this.attributesList = Object.entries(this.inputAttributes).map(([name, value]) => ({
-      name,
-      value: JSON.stringify(value),
-    }));
+    this.attributesList = Object.entries(this.inputAttributes)
+      // filter out cwbc custom input attributes from display (shown via checkbox)
+      .filter(([name]) => name !== 'showIDK')
+      .map(([name, value]) => ({
+        name,
+        value: JSON.stringify(value),
+      }));
   }
 }

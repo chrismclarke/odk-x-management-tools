@@ -48,13 +48,16 @@ export class TableRowEditorDialogComponent implements AfterViewInit, OnDestroy {
     this.isSaving = true;
     const updatedValues = this.formGroup.value;
     const updatedRow = this.data.row;
+    const summary = {};
     // just process entries which have been marked as updated, and apply to original document
     Object.entries(this.fieldsChanged)
       .filter(([_, isChanged]) => isChanged)
       .forEach(([fieldname]) => {
         const updateValue = updatedValues[fieldname];
         updatedRow[fieldname] = updateValue;
+        summary[fieldname] = { before: this.initialValues[fieldname], after: updateValue };
       });
+    console.table(summary);
     const res = await this.odkService.updateRows([updatedRow]);
     console.log('save response', res);
 
@@ -78,7 +81,9 @@ export class TableRowEditorDialogComponent implements AfterViewInit, OnDestroy {
     this.init();
   }
   ngOnDestroy() {
-    this.formChanges$.unsubscribe();
+    if (this.formChanges$) {
+      this.formChanges$.unsubscribe();
+    }
   }
   undoEdit(fieldname: string) {
     this.formGroup.patchValue({ [fieldname]: this.initialValues[fieldname] });
