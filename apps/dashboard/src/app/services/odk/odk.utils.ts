@@ -1,4 +1,5 @@
 import * as IODK from '../../types/odk.types';
+import { objectFilter } from '../../utils/utils';
 
 /********************************************************
  * ODK Helper functions
@@ -13,9 +14,7 @@ import * as IODK from '../../types/odk.types';
  * - Delete various fields
  * - Match metafield order as specified in SyncClient.java
  */
-export function convertODKRowsForExport(
-  rows: IODK.IResTableRow[]
-): IODK.ITableRow[] {
+export function convertODKRowsForExport(rows: IODK.IResTableRow[]): IODK.ITableRow[] {
   const converted = [];
   rows.forEach((row) => {
     const r = { ...row };
@@ -61,6 +60,43 @@ export function convertODKRowsForExport(
 }
 
 /**
+ * Convert odk row array back into the format required when running alter operations
+ */
+export function convertODKRowsForUpload(
+  rows: IODK.ITableRow[],
+  orderedColumns: IODK.ISchemaColumn[]
+): IODK.IUploadTableRow[] {
+  const uploadRows = rows.map((r) => {
+    // map column metadata to upload format
+    const uploadColumns = orderedColumns.map((c) => {
+      const uploadColumn: IODK.IResTableColumn = { column: c.elementKey, value: r[c.elementKey] };
+      return uploadColumn;
+    });
+    const uploadRow: IODK.IUploadTableRow = {
+      orderedColumns: uploadColumns,
+      filterScope: {
+        defaultAccess: r._default_access,
+        groupModify: r._group_modify,
+        groupPrivileged: r._group_privileged,
+        groupReadOnly: r._group_read_only,
+        rowOwner: r._row_owner,
+      },
+      deleted: r._deleted,
+      formId: r._form_id,
+      id: r._id,
+      locale: r._locale,
+      rowETag: r._row_etag,
+      savepointCreator: r._savepoint_creator,
+      savepointTimestamp: r._savepoint_timestamp,
+      savepointType: r._savepoint_type,
+    };
+    return uploadRow;
+  });
+
+  return uploadRows;
+}
+
+/**
  * Takes an odk form defintion and returns a list of all data fields
  * identified from the survey alongside their corresponding formdef row data
  */
@@ -85,8 +121,8 @@ export function extractFormdefPromptsByName(formdef: IODK.IFormDef) {
   return promptsByName;
 }
 
-export function extractChoicesByName(formdef:IODK.IFormDef){
-  const {} = formdef
+export function extractChoicesByName(formdef: IODK.IFormDef) {
+  const {} = formdef;
 }
 
 /**

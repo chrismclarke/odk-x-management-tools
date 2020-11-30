@@ -31,12 +31,7 @@ import { OdkService } from '../services/odk';
             </mat-form-field>
             <mat-form-field>
               <mat-label>Username</mat-label>
-              <input
-                matInput
-                formControlName="username"
-                autocomplete="on"
-                name="username"
-              />
+              <input matInput formControlName="username" autocomplete="on" name="username" />
             </mat-form-field>
             <mat-form-field>
               <mat-label>Password</mat-label>
@@ -49,9 +44,24 @@ import { OdkService } from '../services/odk';
               />
             </mat-form-field>
           </div>
-          <mat-checkbox formControlName="shouldRemember" color="primary">
-            Remember Me
-          </mat-checkbox>
+          <div style="display:flex; align-items:center">
+            <mat-checkbox
+              formControlName="shouldRemember"
+              color="primary"
+              (change)="rememberMeChanged()"
+            >
+              Remember Me
+            </mat-checkbox>
+            <button
+              class="info-button"
+              mat-icon-button
+              matTooltip="Store the server url, username and password locally in this web browser. This should not be used on public computers"
+              matTooltipClass="tooltip"
+              aria-label="Store the server url, username and password locally in this web browser. This should not be used on public computers"
+            >
+              <mat-icon style="font-size:24px">info</mat-icon>
+            </button>
+          </div>
         </fieldset>
         <div class="form-buttons-container">
           <button
@@ -97,6 +107,12 @@ import { OdkService } from '../services/odk';
         width: 100%;
         margin-right: 20px;
       }
+      .info-button {
+        margin-top: -4px;
+        height: 24px;
+        width: 40px;
+        line-height: 24px;
+      }
     `,
   ],
 })
@@ -105,16 +121,10 @@ export class ServerLoginComponent {
   credentialsForm: FormGroup;
   storage: Storage = localStorage;
   constructor(public odkService: OdkService, private fb: FormBuilder) {
-    const serverUrl = this.getStorage('odkServerUrl');
-    const token = this.getStorage('odkToken');
-    const { username, password } = this.initializeToken(token);
-    const isRemembered = this.getStorage('odkServerUrl') ? true : false;
-    this.credentialsForm = this.createForm({
-      serverUrl: [serverUrl, Validators.required],
-      username: username,
-      password: password,
-      shouldRemember: isRemembered,
-    });
+    this.initForm();
+    if (this.credentialsForm.valid && !this.odkService.isConnected.value) {
+      this.connect(this.credentialsForm.value);
+    }
   }
 
   /**
@@ -134,15 +144,37 @@ export class ServerLoginComponent {
       this.connectionChange.next(this.odkService.isConnected.value);
     } catch (error) {
       this.credentialsForm.enable();
+      this.removeStorage('odkToken');
     }
   }
-  // TODO - rework for new provider
   disconnect() {
-    this.storage.removeItem('odkToken');
-    this.credentialsForm.reset();
-    this.credentialsForm.enable();
+    this.initForm();
     this.odkService.disconnect();
     this.connectionChange.next(this.odkService.isConnected.value);
+  }
+
+  /** When toggling off remember-me delete any cached credentials */
+  public rememberMeChanged() {
+    const { shouldRemember } = this.credentialsForm.value;
+    if (!shouldRemember) {
+      this.removeStorage('odkServerUrl');
+      this.removeStorage('odkToken');
+      this.credentialsForm.reset();
+    }
+  }
+
+  /** Build login form and pre-populate with any cached values */
+  private initForm() {
+    const serverUrl = this.getStorage('odkServerUrl');
+    const token = this.getStorage('odkToken');
+    const { username, password } = this.initializeToken(token);
+    const isRemembered = this.getStorage('odkServerUrl') ? true : false;
+    this.credentialsForm = this.createForm({
+      serverUrl: [serverUrl, Validators.required],
+      username: username,
+      password: password,
+      shouldRemember: isRemembered,
+    });
   }
 
   private createForm(model: ICredentialsFormModel): FormGroup {
@@ -168,6 +200,9 @@ export class ServerLoginComponent {
 
   private setStorage(key: IStorageKey, value: string) {
     return this.storage.setItem(key, value);
+  }
+  private removeStorage(key: IStorageKey) {
+    return this.storage.removeItem(key);
   }
 }
 

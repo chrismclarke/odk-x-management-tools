@@ -1,16 +1,11 @@
-import {
-  Component,
-  EventEmitter,
-  Input,
-  Output,
-  ViewEncapsulation,
-} from '@angular/core';
+import { Component, EventEmitter, Input, Output, ViewEncapsulation } from '@angular/core';
 import { AgGridColumn } from 'ag-grid-angular';
 import {
   GridApi,
   DetailGridInfo,
   ColumnApi,
   CellValueChangedEvent,
+  Column,
 } from 'ag-grid-community';
 import { ITableRow, ITableSchema } from '../types/odk.types';
 import { OdkService } from '../services/odk';
@@ -50,9 +45,7 @@ import { OdkService } from '../services/odk';
         (firstDataRendered)="onFirstDataRendered($event)"
         [frameworkComponents]="frameworkComponents"
         [enableCellTextSelection]="false"
-        (selectionChanged)="onSelectionChanged()"
         rowSelection="single"
-        (cellValueChanged)="onCellValueChanged($event)"
         [undoRedoCellEditing]="true"
         [undoRedoCellEditingLimit]="20"
         [enableCellChangeFlash]="true"
@@ -100,7 +93,7 @@ export class TableDataComponent {
   public frameworkComponents = { testCellRenderer: null };
   public tableEdits: ITableEdit[] = [];
 
-  @Output() 'selectedRowChange' = new EventEmitter<ITableRow[]>();
+  @Output() 'cellSelected' = new EventEmitter<any>();
   @Output() 'tableEditsChange' = new EventEmitter<ITableEdit[]>();
   @Input('rows') set rows(rows: ITableRow[]) {
     this.tableEdits = [];
@@ -124,12 +117,6 @@ export class TableDataComponent {
       cellClass: 'cell',
     };
   }
-  onCellValueChanged(params: CellValueChangedEvent) {
-    const rowField = (params.column as any).colId;
-    const { oldValue, newValue, data } = params;
-    this.tableEdits.push({ rowField, oldValue, newValue, rowData: data });
-    this.tableEditsChange.next(this.tableEdits);
-  }
 
   /**
    * Provide access to grid methods once initial render complete
@@ -142,20 +129,18 @@ export class TableDataComponent {
   onQuickFilterChanged(searchValue: string) {
     this.gridApi.setQuickFilter(searchValue);
   }
-  onSelectionChanged() {
-    const selected = this.gridApi.getSelectedRows();
-    this.selectedRowChange.next(selected);
+  onCellClicked(e: CellValueChangedEvent) {
+    const rowData = e.data as ITableRow;
+    const colId = (e.column as any).colId;
+    this.cellSelected.next({ rowData, colId });
   }
 
   private generateColumns(schema: ITableSchema) {
     const { orderedColumns } = schema;
     const displayColumns: Partial<AgGridColumn>[] = orderedColumns.map((c) => {
-      const { cellEditor, cellEditorParams } = this.getCellEditor(c);
       return {
         field: c.elementKey,
-        // editable: c.elementKey.charAt(0) !== '_',
-        cellEditor,
-        cellEditorParams,
+        onCellClicked: (e: CellValueChangedEvent) => this.onCellClicked(e),
       };
     });
     // Add non-editable metadata keys at start and end of table
@@ -163,6 +148,7 @@ export class TableDataComponent {
       const mapping: Partial<AgGridColumn> = {
         field: key,
         cellClass: 'cell non-editable',
+        onCellClicked: (e: CellValueChangedEvent) => this.onCellClicked(e),
       };
       if (position === 'start') {
         displayColumns.unshift(mapping);
@@ -171,38 +157,6 @@ export class TableDataComponent {
       }
     });
     return displayColumns;
-  }
-
-  private getCellEditor(columnMeta: ITableSchema['orderedColumns'][0]) {
-    const cellEditor = specifyEditorType(columnMeta.elementType);
-    const cellEditorParams = specifyEditorParams(columnMeta.elementType);
-
-    return { cellEditor, cellEditorParams };
-
-    function specifyEditorType(elementType: string) {
-      // TODO - add support for all datatypes
-      // TODO - add support for reading select question types, and returning choice picker with correct options
-      switch (elementType) {
-        case 'string':
-          return 'agTextCellEditor';
-        // included editors: https://www.ag-grid.com/javascript-grid-provided-cell-editors/
-        default:
-          if (elementType.includes('string(')) {
-            return 'agLargeTextCellEditor';
-          }
-        // should be fine as string entries are re-processed server side
-        // console.warn(
-        //   `editing [${elementType}] as string`,
-        //   columnMeta.elementKey
-        // );
-      }
-    }
-    function specifyEditorParams(elementType: string) {
-      switch (elementType) {
-        default:
-          return {};
-      }
-    }
   }
 }
 

@@ -142,8 +142,29 @@ export interface IResAlterRows {
   rows: ITableRowAltered[];
   tableUri: string;
 }
-interface ITableRowAltered extends ITableRow {
+interface ITableRowAltered {
   outcome: 'UNKNOWN' | 'SUCCESS' | 'DENIED' | 'IN_CONFLICT' | 'FAILED';
+  // TODO - Tidy typings and copy to other projects (CC-2020-11-29)
+  createUser: null;
+  dataETagAtModification: string;
+  deleted: false;
+  filterScope: {
+    defaultAccess: 'FULL';
+    rowOwner: null;
+    groupReadOnly: null;
+    groupModify: null;
+    groupPrivileged: null;
+  };
+  formId: null;
+  id: string;
+  lastUpdateUser: null;
+  locale: null;
+  orderedColumns: null;
+  rowETag: string;
+  savepointCreator: null;
+  savepointTimestamp: null;
+  savepointType: null;
+  selfUri: null;
 }
 export interface IResTableCreate {
   tableId: string;
@@ -174,7 +195,6 @@ export interface IUploadRowList {
   rows: IUploadTableRow[];
   dataETag: string;
 }
-
 
 /********************************************************************
  * Copied from cwbc-odkx-app survey-parser
@@ -247,7 +267,7 @@ export interface ISurveyWorksheetRow {
 }
 type ISurveyRowKey = keyof ISurveyWorksheetRow;
 // translations can be provided by a reference or direct text
-type ITranslatableText = "string" | { text: string };
+type ITranslatableText = 'string' | { text: string };
 
 interface IFormDefSpecification {
   calculates: any;

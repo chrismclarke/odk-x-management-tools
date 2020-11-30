@@ -31,6 +31,10 @@
   width: 65px;
   margin-left: 8px;
 }
+.field-input-container {
+  flex: 1;
+  display: flex;
+}
 .field-value {
   padding: 5px;
   flex: 1;
@@ -52,12 +56,15 @@
 }
 .form-container {
   overflow-x: hidden;
+  overflow-y: auto;
 }
 
-select {
-  width: 100%;
-}
+select,
 input,
 textarea {
-  width: calc(100% - 8px);
+  width: 100%;
+}
+
+input:invalid {
+  border: 2px solid #fb8585;
 }

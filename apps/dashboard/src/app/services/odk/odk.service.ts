@@ -4,6 +4,7 @@ import * as IODK from '../../types/odk.types';
 import OdkRestService from './odk.rest';
 import { NotificationService } from '../notification.service';
 import * as ODKUtils from './odk.utils';
+import { arrayToHashmap } from '../../utils/utils';
 
 @Injectable({ providedIn: 'root' })
 export class OdkService {
@@ -92,33 +93,25 @@ export class OdkService {
     this.table$.next(table);
     this.tableRows$.next(undefined);
     if (table) {
-      const { schema, tableRows } = await this.getTableMeta(table);
+      const { tableId, schemaETag } = table;
+      const { schema, tableRows } = await this.getTableMeta(tableId, schemaETag);
       this.tableSchema$.next(schema);
       this.tableRows$.next(tableRows);
     }
   }
-  /**
-   * Clear the cache and reload current table data (following updates)
-   */
-  async refreshActiveTable() {
-    this.tableRows$.next(undefined);
-    this.tableSchema$.next(undefined);
-    this._cache[this.table$.value.tableId] = undefined;
-    this.setActiveTable(this.table$.value);
-  }
+
   /**
    * Get the table definition any any rows
    * from the server (or cache if available) and populate to their corresponding
    * behaviour subjects and cache
    */
-  async getTableMeta(table: IODK.ITableMeta) {
-    const { tableId, schemaETag } = table;
-    if (this._cache[tableId]) {
+  async getTableMeta(tableId: string, schemaETag: string, skipCache = false) {
+    if (this._cache[tableId] && !skipCache) {
       return this._cache[tableId];
     } else {
       // TODO - handle in parallel?
       const schema = await this.odkRest.getDefinition(tableId, schemaETag);
-      const { rows } = await this.getRowsInBatch(table);
+      const { rows } = await this.getRowsInBatch(tableId, schemaETag);
       const resRows = rows;
       const tableRows = ODKUtils.convertODKRowsForExport(rows);
       this._cache[tableId] = { schema, tableRows, resRows };
@@ -129,11 +122,11 @@ export class OdkService {
    * Use paged queries to get all rows and avoid timeout/size issues
    */
   async getRowsInBatch(
-    table: IODK.ITableMeta,
+    tableId: string,
+    schemaETag: string,
     allRows = [],
     cursor = null
   ): Promise<IODK.IResTableRows> {
-    const { tableId, schemaETag } = table;
     const params: any = { fetchLimit: this.fetchLimit };
     if (cursor) {
       params.cursor = cursor;
@@ -142,7 +135,7 @@ export class OdkService {
     const { hasMoreResults, webSafeResumeCursor, rows } = res;
     allRows = [...allRows, ...rows];
     if (hasMoreResults) {
-      return this.getRowsInBatch(table, allRows, webSafeResumeCursor);
+      return this.getRowsInBatch(tableId, schemaETag, allRows, webSafeResumeCursor);
     }
     return { ...res, rows: allRows };
   }
@@ -163,61 +156,43 @@ export class OdkService {
     return this.getFormdef(tableId, formId);
   }
 
+  /**
+   * When updating rows first
+   * TODO - copy/sync back with cwbc-odkx-app
+   */
   async updateRows(tableRows: IODK.ITableRow[]) {
     const { tableId, schemaETag, dataETag } = this.table$.value;
-    const { resRows } = await this.getTableMeta(this.table$.value);
-    // prepare metadata for popluation with upload object
-    const rawRowsById: { [id: string]: IODK.IUploadTableRow } = {};
-    resRows.forEach((r) => {
-      delete r.selfUri;
-      rawRowsById[r.id] = r;
-    });
-    const rowUpdates: IODK.IUploadTableRow[] = [];
-    // convert data into correct format for upload
-    tableRows.forEach((r) => {
-      const rowMeta = rawRowsById[r._id];
-      const orderedColumns: IODK.IResTableColumn[] = [];
-      Object.entries(r).forEach(([column, value]) => {
-        if (column.charAt(0) !== '_') {
-          orderedColumns.push({ column, value });
-        }
-      });
-      rowUpdates.push({ ...rowMeta, orderedColumns });
-    });
-    const res = this.odkRest.alterRows(tableId, schemaETag, {
-      rows: rowUpdates,
-      dataETag,
-    });
-    // TODO - handle smoother update of local row data (without refresh)
-    this.refreshActiveTable();
-    return res;
-  }
-  async backupCurrentTable(backupTableId: string) {
-    const { tableId, schemaETag } = this.table$.value;
+    // fetch fresh schema in case planning multiple updates in a row
     const schema = await this.odkRest.getDefinition(tableId, schemaETag);
     const { orderedColumns } = schema;
-    const backupSchema: IODK.ITableSchema = {
-      schemaETag: `uuid:${UUID().toString()}`,
-      tableId: backupTableId,
-      orderedColumns,
-    };
-    const backup = await this.odkRest.createTable(backupSchema);
-    console.log('backup table res', backup);
-    // fetch rows again instead of using converted as easier to modify
-    let { rows } = await this.getRowsInBatch(this.table$.value);
-    rows = rows.map((r) => {
-      // selfUri property not supported on put request
-      delete r.selfUri;
-      r.dataETagAtModification = backup.dataETag;
-      return r;
-    });
-    const rowList = { rows, dataETag: backup.dataETag };
-    const res = await this.odkRest.alterRows(backup.tableId, backup.schemaETag, rowList);
-    // TODO - handle response related to row outcomes
-    console.log('bakup res', res);
-    await this.getAllTables();
-    await this.setActiveTable(backup);
+    // Refactor updates to match upload format
+    const rows = ODKUtils.convertODKRowsForUpload(tableRows, orderedColumns);
+    // run update
+    const res = await this.odkRest.alterRows(tableId, schemaETag, { rows, dataETag });
+    // process any new table and row etags
+    const rawRowUpdatesById = arrayToHashmap(tableRows, '_id');
+    const resRowUpdatesById = arrayToHashmap(
+      res.rows.filter((r) => r.outcome === 'SUCCESS'),
+      'id'
+    );
+    // update local definitions with new etags returned from update operations
+    this.table$.next({ ...this.table$.value, dataETag: res.dataETag });
+    this.tableRows$.next(
+      this.tableRows$.value.map((r) => {
+        const update = resRowUpdatesById[r._id];
+        if (update) {
+          return {
+            ...rawRowUpdatesById[r._id],
+            _row_etag: update.rowETag,
+            _data_etag_at_modification: res.dataETag,
+          };
+        }
+        return r;
+      })
+    );
+    return res;
   }
+
   async deleteCurrentTable() {
     const { tableId, schemaETag } = this.table$.value;
     await this.odkRest.deleteTable(tableId, schemaETag);
@@ -242,6 +217,55 @@ export class OdkService {
       console.log('tables ids loaded', res.tables);
     }
   }
+
+  /**
+   * Create a copy of a table on the server
+   * (Not currently in use - could possibly use refinement)
+   */
+  async backupCurrentTable(backupTableId: string) {
+    // const { tableId, schemaETag } = this.table$.value;
+    // const schema = await this.odkRest.getDefinition(tableId, schemaETag);
+    // const { orderedColumns } = schema;
+    // const backupSchema: IODK.ITableSchema = {
+    //   schemaETag: `uuid:${UUID().toString()}`,
+    //   tableId: backupTableId,
+    //   orderedColumns,
+    // };
+    // const backup = await this.odkRest.createTable(backupSchema);
+    // console.log('backup table res', backup);
+    // // fetch rows again instead of using converted as easier to modify
+    // let { rows } = await this.getRowsInBatch(tableId, schemaETag);
+    // rows = rows.map((r) => {
+    //   // selfUri property not supported on put request
+    //   delete r.selfUri;
+    //   r.dataETagAtModification = backup.dataETag;
+    //   return r;
+    // });
+    // const rowList = { rows, dataETag: backup.dataETag };
+    // const res = await this.odkRest.alterRows(backup.tableId, backup.schemaETag, rowList);
+    // // TODO - handle response related to row outcomes
+    // console.log('bakup res', res);
+    // await this.getAllTables();
+    // await this.setActiveTable(backup);
+  }
+
+  /**
+   * Clear the cache and reload current table data (following updates)
+   * Deprecated 2020-11-29
+   */
+  // async refreshActiveTable() {
+  //   const { tableId, schemaETag } = this.table$.value;
+  //   this.tableRows$.next(undefined);
+  //   this.tableSchema$.next(undefined);
+  //   this._cache[tableId] = undefined;
+  //   // refetch table meta
+  //   const { schema, tableRows } = await this.getTableMeta({
+  //     tableId,
+  //     schemaETag,
+  //   } as IODK.ITableMeta);
+  //   this.tableSchema$.next(schema);
+  //   this.tableRows$.next(tableRows);
+  // }
 }
 
 /********************************************************
