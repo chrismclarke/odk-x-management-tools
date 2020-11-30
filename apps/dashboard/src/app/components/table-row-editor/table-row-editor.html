@@ -105,12 +105,16 @@
 
   <div mat-dialog-actions style="margin-top: auto; margin-left: auto">
     <button mat-button (click)="cancel()" cdkFocusInitial [disabled]="isSaving">Cancel</button>
+    <button mat-button (click)="saveEdits()" *ngIf="fieldsChangedArray.length === 0" disabled>
+      Save Edits
+    </button>
     <button
       mat-button
       (click)="saveEdits()"
-      [disabled]="!formGroup || (formGroup && formGroup.pristine) || isSaving"
+      *ngIf="fieldsChangedArray.length > 0"
+      [disabled]="isSaving"
     >
-      Save Edits
+      Save {{fieldsChangedArray.length}} Edits
     </button>
   </div>
 </div>

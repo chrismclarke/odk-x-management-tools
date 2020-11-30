@@ -2,7 +2,7 @@ import { AfterViewInit, Component, ElementRef, Inject, OnDestroy, ViewChild } fr
 import { FormControl, FormGroup } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { Subscription } from 'rxjs';
-import { arrayToHashmap, objectFilter } from '../../utils/utils';
+import { arrayToHashmap } from '../../utils/utils';
 import { NotificationService } from '../../services/notification.service';
 import { OdkService } from '../../services/odk';
 import { extractFormdefPromptsByName } from '../../services/odk/odk.utils';
@@ -34,6 +34,7 @@ export class TableRowEditorDialogComponent implements AfterViewInit, OnDestroy {
   formChanges$: Subscription;
   /** Keep list of fields that have changed for css styling */
   fieldsChanged: { [name: string]: boolean } = {};
+  fieldsChangedArray = [];
   constructor(
     private odkService: OdkService,
     private notifications: NotificationService,
@@ -74,6 +75,7 @@ export class TableRowEditorDialogComponent implements AfterViewInit, OnDestroy {
       };
       // Re-initialised value change tracking
       this.fieldsChanged = {};
+      this.fieldsChangedArray = [];
       this.initialValues = updatedValues;
       this.formGroup.reset(this.initialValues);
     } else {
@@ -92,8 +94,25 @@ export class TableRowEditorDialogComponent implements AfterViewInit, OnDestroy {
     }
   }
   undoEdit(fieldname: string) {
-    this.formGroup.patchValue({ [fieldname]: this.initialValues[fieldname] });
-    this.fieldsChanged[fieldname] = false;
+    const initialValue = this.initialValues[fieldname];
+    this.formGroup.patchValue({ [fieldname]: initialValue });
+    this.notifyFieldChanged(fieldname, initialValue);
+  }
+  /** Update local field change trackers to reflect overall change summaries **/
+  private notifyFieldChanged(fieldname: string, value: any) {
+    const isChanged = value !== this.initialValues[fieldname];
+    if (isChanged) {
+      this.fieldsChanged[fieldname] = true;
+    } else {
+      if (this.fieldsChanged.hasOwnProperty(fieldname)) {
+        delete this.fieldsChanged[fieldname];
+      }
+    }
+    this.fieldsChangedArray = Object.entries(this.fieldsChanged).map(([name, v]) => ({
+      name,
+      before: this.initialValues[name],
+      after: value,
+    }));
   }
 
   private async init() {
@@ -176,8 +195,7 @@ export class TableRowEditorDialogComponent implements AfterViewInit, OnDestroy {
     this.formChanges$ = new Subscription();
     Object.entries(this.formGroup.controls).forEach(([name, control]) => {
       const subscription = control.valueChanges.subscribe((v) => {
-        const isChanged = v !== this.initialValues[name];
-        this.fieldsChanged[name] = isChanged;
+        this.notifyFieldChanged(name, v);
       });
       this.formChanges$.add(subscription);
     });
