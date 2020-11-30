@@ -22,6 +22,7 @@
         <div style="flex: 1">
           <!-- Question type handlers -->
           <div class="field-input-container">
+            <!-- TODO - refactor to individual components -->
             <input *ngSwitchCase="'text'" [formControlName]="field.name" />
             <textarea *ngSwitchCase="'textarea'" [formControlName]="field.name"></textarea>
             <select *ngSwitchCase="'select_one'" [formControlName]="field.name">
