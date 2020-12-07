@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, Input } from '@angular/core';
 import { ControlValueAccessor } from '@angular/forms';
-import { ISurveyWorksheetRow } from '../../../types/odk.types';
+import { ISurveyRowWithValue } from '../../../types/odk.types';
 
 @Component({
   template: ``,
@@ -13,7 +13,7 @@ import { ISurveyWorksheetRow } from '../../../types/odk.types';
  */
 export class ODKXPromptBase implements ControlValueAccessor {
   disabled = false;
-  @Input() odkxColumns: Partial<ISurveyWorksheetRow> = {}; // question object passed to the component
+  @Input() odkxColumns: Partial<ISurveyRowWithValue> = {}; // question object passed to the component
 
   /** local variable for tracking value and comparisons */
   private _val: any = null;
