@@ -24,6 +24,12 @@
           <div class="field-input-container">
             <!-- TODO - refactor to individual components -->
             <input *ngSwitchCase="'text'" [formControlName]="field.name" />
+            <input
+              type="number"
+              *ngSwitchCase="'decimal'"
+              [formControlName]="field.name"
+              [odkxmInputAttributes]="field.inputAttributes"
+            />
             <textarea *ngSwitchCase="'textarea'" [formControlName]="field.name"></textarea>
             <select *ngSwitchCase="'select_one'" [formControlName]="field.name">
               <option *ngFor="let option of field.select_options" [value]="option.value">
