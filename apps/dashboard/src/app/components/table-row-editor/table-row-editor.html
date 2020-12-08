@@ -73,6 +73,11 @@
               [formControlName]="field.name"
               [odkxColumns]="field"
             ></cwbc-custom-number>
+            <cwbc-custom-section-complete
+              *ngSwitchCase="'custom_section_complete'"
+              [formControlName]="field.name"
+              [odkxColumns]="field"
+            ></cwbc-custom-section-complete>
 
             <div *ngSwitchCase="'assign'">{{ field.value }}</div>
             <div *ngSwitchDefault>{{field.value}}</div>
