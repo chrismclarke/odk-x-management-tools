@@ -8,7 +8,7 @@ import { OdkService } from '../../services/odk';
 import { extractFormdefPromptsByName } from '../../services/odk/odk.utils';
 import {
   IFormDef,
-  ISurveyWorksheetRow,
+  ISurveyRowWithValue,
   ITableMeta,
   ITableRow,
   ITableSchema,
@@ -202,10 +202,6 @@ export class TableRowEditorDialogComponent implements AfterViewInit, OnDestroy {
   }
 }
 
-interface ISurveyRowWithValue extends ISurveyWorksheetRow {
-  value: string;
-  select_options?: any[];
-}
 export interface ITableRowEditorData {
   row: ITableRow;
   /** field id user clicked when opening editor, for scrolling */

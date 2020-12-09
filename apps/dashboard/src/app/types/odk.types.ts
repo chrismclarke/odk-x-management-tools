@@ -265,6 +265,11 @@ export interface ISurveyWorksheetRow {
     screen_type?: string;
   };
 }
+
+export interface ISurveyRowWithValue extends ISurveyWorksheetRow {
+  value: string;
+  select_options?: { label: string; value: string }[];
+}
 type ISurveyRowKey = keyof ISurveyWorksheetRow;
 // translations can be provided by a reference or direct text
 type ITranslatableText = 'string' | { text: string };
