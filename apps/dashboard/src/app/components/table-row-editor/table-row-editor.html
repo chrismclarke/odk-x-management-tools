@@ -32,11 +32,13 @@
             />
             <textarea *ngSwitchCase="'textarea'" [formControlName]="field.name"></textarea>
             <select *ngSwitchCase="'select_one'" [formControlName]="field.name">
+              <option [selected]="!field.value"></option>
               <option *ngFor="let option of field.select_options" [value]="option.value">
                 {{option.value}} - {{option.label}}
               </option>
             </select>
             <select *ngSwitchCase="'select_one_dropdown'" [formControlName]="field.name">
+              <option [selected]="!field.value"></option>
               <option
                 *ngFor="let option of field.select_options"
                 [value]="option.value"
