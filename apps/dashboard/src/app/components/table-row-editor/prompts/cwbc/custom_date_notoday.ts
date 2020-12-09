@@ -9,11 +9,10 @@ import { NG_VALUE_ACCESSOR } from '@angular/forms';
 import { ODKXPromptBase } from '../base';
 
 @Component({
-  selector: 'cwbc-custom-date',
+  selector: 'cwbc-custom-date-notoday',
   template: ` <div style="display:flex">
     <div class="input-container">
       <input [odkxmInputAttributes]="odkxColumns.inputAttributes" type="date" [(ngModel)]="value" />
-      <button (click)="setToday()">Today</button>
       <button (click)="setDoNotKnow()">Do Not Know</button>
     </div>
   </div>`,
@@ -23,27 +22,17 @@ import { ODKXPromptBase } from '../base';
   providers: [
     {
       provide: NG_VALUE_ACCESSOR,
-      useExisting: forwardRef(() => CustomDate),
+      useExisting: forwardRef(() => CustomDateNoToday),
       multi: true,
     },
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CustomDate extends ODKXPromptBase {
+export class CustomDateNoToday extends ODKXPromptBase {
   @ViewChild('promptInput') promptInput: ElementRef<HTMLInputElement>;
 
   setDoNotKnow() {
     const defaultDate = '1900-01-01';
     this.value = defaultDate;
-  }
-  setToday() {
-    const today = formatDateForInput();
-    this.value = today;
-  }
-}
-function formatDateForInput(d = new Date()) {
-  return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
-  function pad(n) {
-    return n < 10 ? '0' + n : n;
   }
 }

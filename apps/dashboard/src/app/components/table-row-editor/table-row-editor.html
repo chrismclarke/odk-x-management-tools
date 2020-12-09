@@ -76,6 +76,11 @@
               [formControlName]="field.name"
               [odkxColumns]="field"
             ></cwbc-custom-date>
+            <cwbc-custom-date-notoday
+              *ngSwitchCase="'custom_date_notoday'"
+              [formControlName]="field.name"
+              [odkxColumns]="field"
+            ></cwbc-custom-date-notoday>
             <cwbc-custom-datetime-picker
               *ngSwitchCase="'custom_datetime_picker'"
               [formControlName]="field.name"
