@@ -1,3 +1,5 @@
-export * from './integer';
-export * from './time';
-export * from './select_multiple';
+import { Integer } from './integer';
+import { Time } from './time';
+import { SelectMultiple } from './select_multiple';
+
+export const ODKXPrompts = [Integer, Time, SelectMultiple];

@@ -79,6 +79,11 @@
               [formControlName]="field.name"
               [odkxColumns]="field"
             ></cwbc-custom-number>
+            <cwbc-custom-number-na
+              *ngSwitchCase="'custom_number_na'"
+              [formControlName]="field.name"
+              [odkxColumns]="field"
+            ></cwbc-custom-number-na>
             <cwbc-custom-section-complete
               *ngSwitchCase="'custom_section_complete'"
               [formControlName]="field.name"
