@@ -71,6 +71,11 @@
               [formControlName]="field.name"
               [odkxColumns]="field"
             ></cwbc-custom-date-picker>
+            <cwbc-custom-date
+              *ngSwitchCase="'custom_date'"
+              [formControlName]="field.name"
+              [odkxColumns]="field"
+            ></cwbc-custom-date>
             <cwbc-custom-datetime-picker
               *ngSwitchCase="'custom_datetime_picker'"
               [formControlName]="field.name"
