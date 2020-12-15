@@ -3,3 +3,8 @@ dist
 tmp
 .vercel
 .git
+.vscode
+Dockerfile*
+.dockerignore
+.gitignore
+LICENSE

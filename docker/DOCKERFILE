@@ -1,11 +1,11 @@
 # Adapted from: https://blog.logrocket.com/containerized-development-nestjs-docker/
-#  and: https://nodejs.org/en/docs/guides/nodejs-docker-webapp/
+# and: https://nodejs.org/en/docs/guides/nodejs-docker-webapp/
 
-# Run a combined server for both api and dashboard
-# $docker build -f docker/DOCKERFILE --tag chrismclarke/odk-x-management-tools .
-# $docker run -p 8080:4200 --name odkxm --rm odkxm
+# Standalone dashboard docker build (no api required)
+# $docker build -f docker/DOCKERFILE --tag chrismclarke/odkx-dashboard .
+# $docker run -p 80:80 --name odkxm --rm chrismclarke/odkx-dashboard
 
-### STAGE 1: Build and serve ###
+### STAGE 1: Build ###
 FROM node:12-alpine AS build
 # Set working directory
 WORKDIR /usr/src/app
@@ -20,10 +20,17 @@ RUN yarn install --ignore-scripts
 RUN ngcc
 # Copy rest of app files
 ADD . .
-# Copy configuration file
-COPY docker/dashboard.config.json ./apps/dashboard/src/environments
-# Expose the default serve port
-EXPOSE 4200
-# serve dashboard and api (concurrently), with additional host listener for all interfaces (0.0.0.0)
-# https://stackoverflow.com/questions/46778868/ng-serve-not-working-in-docker-container
-CMD ["npm","run","start:docker"]
+# Copy hardcoded config (can be bound later)
+RUN cp ./docker/dashboard.config.json ./apps/dashboard/src/assets/dashboard.config.json
+
+# Build the dashboard with docker env as specified in src/environments (no api proxy)
+# Assumes it will be served on proxy /dashboard
+RUN ["nx", "build","dashboard","--configuration=docker","--base-href=/dashboard/"]
+
+### STAGE 2: Serve Dashboard ###
+FROM nginx:1.17-alpine
+# COPY nginx.config /etc/nginx/conf.d/default.conf
+COPY --from=build /usr/src/app/dist/apps/dashboard /usr/share/nginx/html
+# Run the nginx server
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
