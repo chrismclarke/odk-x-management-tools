@@ -20,6 +20,8 @@ RUN yarn install --ignore-scripts
 RUN ngcc
 # Copy rest of app files
 ADD . .
+# Copy configuration file
+COPY docker/dashboard.config.json ./apps/dashboard/src/environments
 # Expose the default serve port
 EXPOSE 4200
 # serve dashboard and api (concurrently), with additional host listener for all interfaces (0.0.0.0)
