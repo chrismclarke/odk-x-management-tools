@@ -2,7 +2,7 @@
 #  and: https://nodejs.org/en/docs/guides/nodejs-docker-webapp/
 
 # Run a combined server for both api and dashboard
-# $docker build -f docker/DOCKERFILE --tag odk-x-management-tools .
+# $docker build -f docker/DOCKERFILE --tag chrismclarke/odk-x-management-tools .
 # $docker run -p 8080:4200 --name odkxm --rm odkxm
 
 ### STAGE 1: Build and serve ###
