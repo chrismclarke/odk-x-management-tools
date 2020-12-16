@@ -1,3 +1,5 @@
+# Build and deploy to docker when a release is generated
+# Note - could be replaced by dockerhub's own tag triggered builds (would need to replace 'v' in version number)
 name: Docker Publish Production
 on:
   release:
