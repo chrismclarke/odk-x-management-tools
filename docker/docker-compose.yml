@@ -1,42 +1,11 @@
 version: '3.7'
-
+# It is expected to be appended to sync-endpoint-default-setup docker-compose
 services:
-  odkxm-api:
-    container_name: odkxm-api
-    build:
-      context: .
-      target: development
-    volumes:
-      - .:/usr/src/app
-      - /usr/src/app/node_modules
-    ports:
-      - ${SERVER_PORT}:${SERVER_PORT}
-      - 9229:9229
-    command: npm run start:dev
-    env_file:
-      - .env
+  dashboard:
+    image: chrismclarke/odkx-dashboard:latest
     networks:
-      - dash-network
+      - sync-network
     depends_on:
-      - redis
-      - postgres
-  odkxm-dashboard:
-    container_name: odkxm-dashboard
-    build:
-      context: .
-      target: development
+      - sync
     volumes:
-      - .:/usr/src/app
-      - /usr/src/app/node_modules
-    ports:
-      - ${SERVER_PORT}:${SERVER_PORT}
-      - 9229:9229
-    command: npm run start:dev
-    env_file:
-      - .env
-    networks:
-      - dash-network
-    depends_on:
-      - odkxm-api
-networks:
-  dash-network:
+      - ./config/dashboard:/usr/share/nginx/html/assets

@@ -23,7 +23,6 @@ RUN ["nx","build","api","--configuration=production"]
 FROM node:12-alpine
 # ARG NODE_ENV=production
 # ENV NODE_ENV=${NODE_ENV}
-# TODO - handle passing port
 EXPOSE 3333
 # Copy dist files from build step
 COPY --from=build /usr/src/app/dist/apps/api ./api
