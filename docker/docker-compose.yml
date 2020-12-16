@@ -1,0 +1,11 @@
+version: '3.7'
+# It is expected to be appended to sync-endpoint-default-setup docker-compose
+services:
+  dashboard:
+    image: chrismclarke/odkx-dashboard:latest
+    networks:
+      - sync-network
+    depends_on:
+      - sync
+    volumes:
+      - ./config/dashboard:/usr/share/nginx/html/assets

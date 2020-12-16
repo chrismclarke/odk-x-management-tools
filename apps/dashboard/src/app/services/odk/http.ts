@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
+import { environment } from '../../../environments/environment';
 import axios, { AxiosRequestConfig, AxiosError } from 'axios';
 import { IStorageKey } from '../../types';
 
 export type IErrorHandler = (err: AxiosError) => void;
 @Injectable({ providedIn: 'root' })
 export class AxiosHttpService {
-  constructor(private errorHandler: IErrorHandler = () => null) {
+  constructor(private errorHandler: IErrorHandler = () => null, private useApiProxy = true) {
     this._addRequestInterceptor();
     this._addResponseInterceptor();
   }
@@ -44,11 +45,21 @@ export class AxiosHttpService {
   private _addRequestInterceptor() {
     axios.interceptors.request.use(
       (config) => {
-        const { url } = config;
-        config.url = `/api/odktables/${url}`;
         const odkserverurl = getStorage('odkServerUrl');
+        // Make sure requests target the /odktables api endpoint
+        if (!config.url.includes('/odktables')) {
+          config.url = `/odktables/${config.url}`;
+        }
+        // If using the api service as a proxy, append the target odk server url to headers
+        if (environment.useApiProxy) {
+          config.headers = { ...config.headers, odkserverurl };
+        } else {
+          // Otherwise target the server api endpoint
+          config.url = `${location.origin}/${config.url}`;
+        }
+        // Add authorization header
         const Authorization = `basic ${getStorage('odkToken')}`;
-        config.headers = { ...config.headers, Authorization, odkserverurl };
+        config.headers = { ...config.headers, Authorization };
         return config;
       },
       (error) => {
@@ -63,18 +74,18 @@ export class AxiosHttpService {
   private _addResponseInterceptor() {
     axios.interceptors.response.use(
       (response) => {
-        const { data } = response;
-        return data.data || data;
+        // data can be nested, or in the case of 304 no-change just the response object
+        const data = response?.data?.data || response.data || response;
+        return data;
       },
       (err) => {
         if (err.isAxiosError) {
+          console.error(err);
           const { request, response } = err;
           console.error(response.data);
         }
         this.errorHandler(err);
-        return Promise.reject(
-          `Request failed, see logs in developer console for more information`
-        );
+        return Promise.reject(`Request failed, see logs in developer console for more information`);
       }
     );
   }
@@ -82,7 +93,5 @@ export class AxiosHttpService {
 
 // Depending on whether data is persisted, may use local storage or session storage
 function getStorage(key: IStorageKey): string | undefined {
-  return localStorage.getItem(key)
-    ? localStorage.getItem(key)
-    : sessionStorage.getItem(key);
+  return localStorage.getItem(key) ? localStorage.getItem(key) : sessionStorage.getItem(key);
 }

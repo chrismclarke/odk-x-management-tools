@@ -42,10 +42,38 @@ export class TableRowEditorDialogComponent implements AfterViewInit, OnDestroy {
     @Inject(MAT_DIALOG_DATA) public data: ITableRowEditorData
   ) {}
 
+  ngAfterViewInit() {
+    this.init();
+  }
+
+  ngOnDestroy() {
+    if (this.formChanges$) {
+      this.formChanges$.unsubscribe();
+    }
+  }
+
   cancel() {
     this.dialogRef.close();
   }
 
+  private async init() {
+    const fields = await this.getFieldsFromFormDef();
+    this.fields = fields;
+    console.log('fields', arrayToHashmap(this.fields, 'name'));
+    this.formGroup = this.buildFormGroupFromFields(this.fields);
+    this.initialValues = this.formGroup.value;
+    console.log('initialValues', this.initialValues);
+    this._subscribeToFormChanges();
+    this.isLoading = false;
+    setTimeout(() => {
+      this.scrollToField(this.data.colId);
+    }, 50);
+  }
+
+  /**
+   * When saving edits post to api, show response message, and update local bindings
+   * to reflect new default state for change tracking
+   */
   async saveEdits() {
     this.isSaving = true;
     const updatedValues = this.formGroup.value;
@@ -85,14 +113,6 @@ export class TableRowEditorDialogComponent implements AfterViewInit, OnDestroy {
     this.isSaving = false;
   }
 
-  ngAfterViewInit() {
-    this.init();
-  }
-  ngOnDestroy() {
-    if (this.formChanges$) {
-      this.formChanges$.unsubscribe();
-    }
-  }
   undoEdit(fieldname: string) {
     const initialValue = this.initialValues[fieldname];
     this.formGroup.patchValue({ [fieldname]: initialValue });
@@ -113,20 +133,6 @@ export class TableRowEditorDialogComponent implements AfterViewInit, OnDestroy {
       before: this.initialValues[name],
       after: value,
     }));
-  }
-
-  private async init() {
-    const fields = await this.getFieldsFromFormDef();
-    this.fields = fields;
-    console.log('fields', arrayToHashmap(this.fields, 'name'));
-    this.formGroup = this.buildFormGroupFromFields(this.fields);
-    this.initialValues = this.formGroup.value;
-    console.log('initialValues', this.initialValues);
-    this._subscribeToFormChanges();
-    this.isLoading = false;
-    setTimeout(() => {
-      this.scrollToField(this.data.colId);
-    }, 50);
   }
 
   public trackByFieldName(index: number, field: ISurveyRowWithValue) {

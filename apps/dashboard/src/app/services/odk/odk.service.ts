@@ -5,6 +5,8 @@ import OdkRestService from './odk.rest';
 import { NotificationService } from '../notification.service';
 import * as ODKUtils from './odk.utils';
 import { arrayToHashmap } from '../../utils/utils';
+import { environment } from '../../../environments/environment';
+import { HttpClient } from '@angular/common/http';
 
 @Injectable({ providedIn: 'root' })
 export class OdkService {
@@ -16,12 +18,13 @@ export class OdkService {
   tableRows$: BehaviorSubject<IODK.ITableRow[]>;
   tableSchema$: BehaviorSubject<IODK.ITableSchema>;
   userPriviledges$: BehaviorSubject<IODK.IUserPriviledge>;
-  fetchLimit = localStorage.getItem('fetchLimit') || '50';
+  /** Limit the maximum number of rows returned from requests (e.g. to prevent timeout depending on server limits) */
+  fetchLimit = localStorage.getItem('fetchLimit') || environment.useApiProxy ? '50' : '5000';
   isConnected: BehaviorSubject<boolean>;
   serverUrl: string;
   private _cache: IQueryCache = {};
   private odkRest: OdkRestService;
-  constructor(private notifications: NotificationService) {
+  constructor(private notifications: NotificationService, private http: HttpClient) {
     this.init();
   }
   /**
@@ -29,7 +32,7 @@ export class OdkService {
    * @remark - moved outside declaration and constructor
    * to allow disconnect reset function
    */
-  private init() {
+  private async init() {
     this.serverUrl = null;
     this.tableSchema$ = new BehaviorSubject(undefined);
     this.isConnected = new BehaviorSubject(false);
@@ -42,6 +45,47 @@ export class OdkService {
     this.odkRest = new OdkRestService((err) => {
       this.notifications.showMessage(`${err.message} \r\n See console for more info`, 'error');
     });
+    this.processCustomFieldDisplay();
+  }
+
+  /**
+   * Load config file from assets folder
+   * Note 1 - populated from assets to allow easy override in docker without build
+   * Note 2 - use the angular http client as axios client used by odk is proxied
+   */
+  private async processCustomFieldDisplay() {
+    const fields = (await this.http
+      .get('assets/fieldsDisplay.json')
+      .toPromise()) as IFieldDisplay[];
+    console.log('fields', fields);
+    const fieldDisplay = {
+      tableGlobal: {},
+      fieldGlobal: {},
+      tableField: {},
+    };
+    for (const field of fields) {
+      const { TableName, FieldName, Disabled, HiddenInEditor, HiddenInTable } = field;
+      const display = {
+        disabled: strToBool(Disabled),
+        hiddenInTable: strToBool(HiddenInTable),
+        hiddenInEditor: strToBool(HiddenInEditor),
+      };
+      if (TableName) {
+        if (FieldName) {
+          // tableField display setting
+          fieldDisplay.tableField[TableName] = { ...fieldDisplay.tableField[TableName] };
+          fieldDisplay.tableField[TableName][FieldName] = display;
+        } else {
+          console.log('global table',TableName,display)
+          // global table display setting
+          fieldDisplay.tableGlobal[TableName] = display;
+        }
+      } else if (FieldName) {
+        // global field display setting
+        fieldDisplay.fieldGlobal[FieldName] = display;
+      }
+    }
+    console.log('field display', fieldDisplay);
   }
 
   /********************************************************
@@ -55,6 +99,7 @@ export class OdkService {
    */
   async connect() {
     const appIds = await this.odkRest.getAppNames();
+    console.log('connect', appIds);
     if (appIds[0]) {
       console.log('appIds', appIds);
       this.setActiveAppId(appIds[0]);
@@ -281,6 +326,9 @@ function UUID() {
     return v.toString(16);
   });
 }
+function strToBool(str: string = ''): boolean {
+  return str === 'TRUE';
+}
 
 // /********************************************************
 //  * Service-specific interfaces
@@ -291,4 +339,12 @@ interface IQueryCache {
     tableRows: IODK.ITableRow[];
     resRows: IODK.IResTableRow[];
   };
+}
+
+interface IFieldDisplay {
+  TableName: string;
+  FieldName: string;
+  Disabled: 'TRUE' | '';
+  HiddenInEditor: 'TRUE' | '';
+  HiddenInTable: 'TRUE' | '';
 }

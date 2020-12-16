@@ -4,7 +4,9 @@
 
 export const environment = {
   production: false,
-  appVersion: require('../../../../package.json').version
+  appVersion: require('../../../../package.json').version,
+  /** Proxy all requests to /api to be intercepted by local proxy (to avoid cors issues) */
+  useApiProxy: true,
 };
 
 /*
