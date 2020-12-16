@@ -46,19 +46,17 @@ export class AxiosHttpService {
     axios.interceptors.request.use(
       (config) => {
         const odkserverurl = getStorage('odkServerUrl');
-        console.log('original url', config.url);
+        // Make sure requests target the /odktables api endpoint
         if (!config.url.includes('/odktables')) {
           config.url = `/odktables/${config.url}`;
         }
-        // Define the main url. In production/server this is the specified url
-        // In development /odktables is proxied to local api first (see proxy.conf.json)
+        // If using the api service as a proxy, append the target odk server url to headers
         if (environment.useApiProxy) {
           config.headers = { ...config.headers, odkserverurl };
         } else {
-          // use path of local api service
+          // Otherwise target the server api endpoint
           config.url = `${location.origin}/${config.url}`;
         }
-        console.log('target url', config.url);
         // Add authorization header
         const Authorization = `basic ${getStorage('odkToken')}`;
         config.headers = { ...config.headers, Authorization };

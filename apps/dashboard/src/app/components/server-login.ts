@@ -123,7 +123,6 @@ export class ServerLoginComponent {
   useApiProxy = environment.useApiProxy;
   constructor(public odkService: OdkService, private fb: FormBuilder) {
     this.initForm();
-    console.log('env', environment);
   }
 
   /**
@@ -139,7 +138,6 @@ export class ServerLoginComponent {
     this.setStorage('odkToken', btoa(`${username}:${password}`));
     try {
       await this.odkService.connect();
-
       this.odkService.serverUrl = serverUrl;
       this.connectionChange.next(this.odkService.isConnected.value);
     } catch (error) {
