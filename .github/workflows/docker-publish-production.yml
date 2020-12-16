@@ -19,11 +19,12 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+      # https://github.com/metcalfc/docker-action-examples/blob/main/.github/workflows/release.yml
       - name: prep tags
         id: prep
         run: |
           DOCKER_IMAGE=chrismclarke/odkx-dashboard
-          APP_VERSION=$(echo "$(cat package.json | jq -r '.version')")"
+          APP_VERSION=$(echo "$(cat package.json | jq -r '.version')")
           TAGS="${DOCKER_IMAGE}:${APP_VERSION}"
           echo ::set-output name=tags::${TAGS}
       - name: check_tags
