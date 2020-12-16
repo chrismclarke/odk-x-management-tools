@@ -34,7 +34,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: .
-          file: ./docker/Dockerfile
+          file: ./docker/DOCKERFILE
           push: true
           tags: ${{ steps.prep.outputs.tags }}
           # tags: chrismclarke/odkx-dashboard:$APP_VERSION
