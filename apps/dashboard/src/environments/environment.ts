@@ -1,4 +1,3 @@
-import DASHBOARD_CONFIG from './config.json';
 // This file can be replaced during build by using the `fileReplacements` array.
 // `ng build --prod` replaces `environment.ts` with `environment.prod.ts`.
 // The list of file replacements can be found in `angular.json`.
@@ -6,7 +5,8 @@ import DASHBOARD_CONFIG from './config.json';
 export const environment = {
   production: false,
   appVersion: require('../../../../package.json').version,
-  DASHBOARD_CONFIG,
+  /** Proxy all requests to /api to be intercepted by local proxy (to avoid cors issues) */
+  useApiProxy: true,
 };
 
 /*
