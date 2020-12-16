@@ -5,6 +5,7 @@ import OdkRestService from './odk.rest';
 import { NotificationService } from '../notification.service';
 import * as ODKUtils from './odk.utils';
 import { arrayToHashmap } from '../../utils/utils';
+import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class OdkService {
@@ -16,7 +17,8 @@ export class OdkService {
   tableRows$: BehaviorSubject<IODK.ITableRow[]>;
   tableSchema$: BehaviorSubject<IODK.ITableSchema>;
   userPriviledges$: BehaviorSubject<IODK.IUserPriviledge>;
-  fetchLimit = localStorage.getItem('fetchLimit') || '50';
+  /** Limit the maximum number of rows returned from requests (e.g. to prevent timeout depending on server limits) */
+  fetchLimit = localStorage.getItem('fetchLimit') || environment.useApiProxy ? '50' : '5000';
   isConnected: BehaviorSubject<boolean>;
   serverUrl: string;
   private _cache: IQueryCache = {};
@@ -55,6 +57,7 @@ export class OdkService {
    */
   async connect() {
     const appIds = await this.odkRest.getAppNames();
+    console.log('connect',appIds)
     if (appIds[0]) {
       console.log('appIds', appIds);
       this.setActiveAppId(appIds[0]);

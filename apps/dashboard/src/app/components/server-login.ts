@@ -1,13 +1,16 @@
 import { Component, EventEmitter, Output } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { IStorageKey } from '../types';
 import { OdkService } from '../services/odk';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'odkxm-server-login',
   template: `
     <mat-card style="max-width:700px">
       <form
+        *ngIf="credentialsForm"
         class="example-form"
         [formGroup]="credentialsForm"
         (ngSubmit)="connect(credentialsForm.value)"
@@ -17,12 +20,11 @@ import { OdkService } from '../services/odk';
           [disabled]="(odkService.isConnected | async) === true"
         >
           <div>
-            <mat-form-field style="max-width:200px">
+            <mat-form-field style="max-width:200px" *ngIf="useApiProxy">
               <mat-label>Server URL</mat-label>
               <input
                 matInput
                 placeholder="https://..."
-                required
                 type="url"
                 formControlName="serverUrl"
                 name="url"
@@ -78,7 +80,6 @@ import { OdkService } from '../services/odk';
             mat-stroked-button
             color="primary"
             (click)="disconnect()"
-            [disabled]="credentialsForm.invalid"
           >
             Disconnect
           </button>
@@ -120,11 +121,10 @@ export class ServerLoginComponent {
   @Output() connectionChange = new EventEmitter<boolean>();
   credentialsForm: FormGroup;
   storage: Storage = localStorage;
-  constructor(public odkService: OdkService, private fb: FormBuilder) {
+  useApiProxy = environment.useApiProxy;
+  constructor(public odkService: OdkService, private fb: FormBuilder, private http: HttpClient) {
     this.initForm();
-    if (this.credentialsForm.valid && !this.odkService.isConnected.value) {
-      this.connect(this.credentialsForm.value);
-    }
+    console.log('env', environment);
   }
 
   /**
@@ -140,11 +140,13 @@ export class ServerLoginComponent {
     this.setStorage('odkToken', btoa(`${username}:${password}`));
     try {
       await this.odkService.connect();
+
       this.odkService.serverUrl = serverUrl;
       this.connectionChange.next(this.odkService.isConnected.value);
     } catch (error) {
       this.credentialsForm.enable();
       this.removeStorage('odkToken');
+      this.removeStorage('odkServerUrl');
     }
   }
   disconnect() {
@@ -164,17 +166,29 @@ export class ServerLoginComponent {
   }
 
   /** Build login form and pre-populate with any cached values */
-  private initForm() {
+  private async initForm() {
     const serverUrl = this.getStorage('odkServerUrl');
     const token = this.getStorage('odkToken');
     const { username, password } = this.initializeToken(token);
     const isRemembered = this.getStorage('odkServerUrl') ? true : false;
     this.credentialsForm = this.createForm({
-      serverUrl: [serverUrl, Validators.required],
-      username: username,
-      password: password,
+      serverUrl: [serverUrl],
+      username: [username, Validators.required],
+      password: [password, Validators.required],
       shouldRemember: isRemembered,
     });
+    if (this.credentialsForm.valid && !this.odkService.isConnected.value) {
+      this.connect(this.credentialsForm.value);
+    }
+  }
+
+  /**
+   * Load config file from assets folder
+   * Note 1 - populated from assets to allow easy override in docker without build
+   * Note 2 - use the angular http client as axios client used by odk is proxied
+   */
+  private async loadHardcodedConfig() {
+    return this.http.get('assets/dashboard.config.json').toPromise();
   }
 
   private createForm(model: ICredentialsFormModel): FormGroup {
