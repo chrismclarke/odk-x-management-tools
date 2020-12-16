@@ -2,8 +2,6 @@ name: Docker Publish Production
 on:
   release:
     types: [published]
-  push:
-    branches: [v1.4.0]
 jobs:
   docker_build_publish:
     runs-on: ubuntu-latest
@@ -25,7 +23,7 @@ jobs:
         run: |
           DOCKER_IMAGE=chrismclarke/odkx-dashboard
           APP_VERSION=$(echo "$(cat package.json | jq -r '.version')")
-          TAGS="${DOCKER_IMAGE}:${APP_VERSION}"
+          TAGS="${DOCKER_IMAGE}:${APP_VERSION},${DOCKER_IMAGE}:latest"
           echo ::set-output name=tags::${TAGS}
       - name: check_tags
         run: echo "tags - ${{ steps.prep.outputs.tags }}"
@@ -37,7 +35,6 @@ jobs:
           file: ./docker/DOCKERFILE
           push: true
           tags: ${{ steps.prep.outputs.tags }}
-          # tags: chrismclarke/odkx-dashboard:$APP_VERSION
           cache-from: type=registry,ref=chrismclarke/odkx-dashboard:latest
           cache-to: type=inline
       - name: Image digest
