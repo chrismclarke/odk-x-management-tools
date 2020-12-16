@@ -24,7 +24,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           push: true
-          tags: chrismclarke/odkx-dashboard:${{env.APP_VERSION}}
+          tags: 'chrismclarke/odkx-dashboard:${{env.APP_VERSION}}'
           cache-from: type=registry,ref=chrismclarke/odkx-dashboard:latest
           cache-to: type=inline
       - name: Image digest
