@@ -1,5 +1,4 @@
 import { Component, EventEmitter, Output } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { IStorageKey } from '../types';
 import { OdkService } from '../services/odk';
@@ -122,7 +121,7 @@ export class ServerLoginComponent {
   credentialsForm: FormGroup;
   storage: Storage = localStorage;
   useApiProxy = environment.useApiProxy;
-  constructor(public odkService: OdkService, private fb: FormBuilder, private http: HttpClient) {
+  constructor(public odkService: OdkService, private fb: FormBuilder) {
     this.initForm();
     console.log('env', environment);
   }
@@ -180,15 +179,6 @@ export class ServerLoginComponent {
     if (this.credentialsForm.valid && !this.odkService.isConnected.value) {
       this.connect(this.credentialsForm.value);
     }
-  }
-
-  /**
-   * Load config file from assets folder
-   * Note 1 - populated from assets to allow easy override in docker without build
-   * Note 2 - use the angular http client as axios client used by odk is proxied
-   */
-  private async loadHardcodedConfig() {
-    return this.http.get('assets/dashboard.config.json').toPromise();
   }
 
   private createForm(model: ICredentialsFormModel): FormGroup {
