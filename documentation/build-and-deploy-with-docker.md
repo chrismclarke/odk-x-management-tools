@@ -44,6 +44,22 @@ _[source](../docker/config/nginx/sync-endpoint-locations.conf)_
 
 If you intend to provide any custom overrides, such as providing a [Custom Fields Display Configuration](./custom-fields-display.md), you should also copy the [dashboard](../docker/config/dashboard) folder to the server and update the volume binding to match local path (e.g. within the existing [config](https://github.com/odk-x/sync-endpoint-default-setup/tree/master/config) folder)
 
+```
+   volumes:
+     - ./config/dashboard:/usr/share/nginx/html/assets
+```
+
+_Ensure the server path `./config/dashboard` exists and populate with `fieldsDisplay.json` if required_
+
+```
+  [
+    {"tableId":"hidden_table","fieldName":"","hidden":"TRUE","disabled":""},
+    {"tableId":"","fieldName":"_id","hidden":"","disabled":"","order":1},
+  ]
+```
+
+_example `fieldsDisplay.json`_
+
 **Note**, whenever you make changes to files you will need to restart the docker swarm to update the dashboard.
 
 ## Manual Build

@@ -1,37 +1,28 @@
 # Custom Fields Display
 
+A custom configuration file can be provided to change the display of some data within the dashboard. The json should consist of rows formatted in the following way:
 
+## Schema
 
-{ "tableId": "", "fieldName": "odk_create_user", "hidden": "", "disabled": "TRUE" },
-{ "tableId": "", "fieldName": "odk_last_update_user", "hidden": "", "disabled": "TRUE" },
-{ "tableId": "profileSummaryRevisions", "fieldName": "", "hidden": "TRUE", "disabled": "" },
-{ "tableId": "Visit1", "fieldName": "", "hidden": "TRUE", "disabled": "" },
-{ "tableId": "Visit2", "fieldName": "", "hidden": "TRUE", "disabled": "" },
-{ "tableId": "TOD_ANC", "fieldName": "", "hidden": "TRUE", "disabled": "" },
-{ "tableId": "Birthmother", "fieldName": "", "hidden": "TRUE", "disabled": "" },
-{ "tableId": "Postpartum_mother", "fieldName": "", "hidden": "TRUE", "disabled": "" },
-{ "tableId": "Birthbaby", "fieldName": "f10b_22_app_username", "hidden": "", "disabled": "TRUE" },
-{ "tableId": "Birthbaby", "fieldName": "f2_guid_child", "hidden": "", "disabled": "TRUE" },
-{ "tableId": "Birthbaby", "fieldName": "f2a_cohort", "hidden": "", "disabled": "TRUE" },
-{ "tableId": "Birthbaby", "fieldName": "f2a_participant_id", "hidden": "", "disabled": "TRUE" },
-{ "tableId": "Birthbaby", "fieldName": "f6a_as_sfh", "hidden": "TRUE", "disabled": "TRUE" },
+| property  | type   | description                                                                |
+| --------- | ------ | -------------------------------------------------------------------------- |
+| tableId   | string | Apply rule to specific tableId. If omitted applies globally                |
+| fieldName | string | Apply rule to specific field. If omitted applies globally                  |
+| hidden    | string | The table or field should be hidden from displays (specify "TRUE")         |
+| disabled  | string | The field should be disabled in all displays (specify "TRUE")              |
+| order     | number | Priority given to the field in table display (where `1` will appear first) |
 
-https://shancarter.github.io/mr-data-converter/
+## Example
 
+```
+[
+  {"tableId":"table_1","fieldName":"","hidden":"TRUE","disabled":""},
+  {"tableId":"","fieldName":"_id","hidden":"","disabled":"","order":1},
+  {"tableId":"","fieldName":"name","hidden":"","disabled":"","order":2},
+  {"tableId":"table_2","fieldName":"name","hidden":"","disabled":"TRUE","order":""}
+]
+```
 
-## FAQs
-
-Are fields hidden or omitted?
-Just hidden so that row updates won't lose any data
-
-
-
-- Global tables
-
-- Global fields
-
-- Specific table-fields
-
-- hidden
-- disabled
-- order
+- Hide table id `table_1` in displays
+- Make the column `_id` appear leftmost, followed by the `name` column
+- Make the column `name` disabled (but still visisble) when displaying `table_2` (it will also keep order from the global setting)
