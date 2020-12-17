@@ -4,6 +4,7 @@ import { environment } from '../environments/environment';
 import { routes } from './app-routing.module';
 import { OdkService } from './services/odk';
 import Animations from './animations';
+import { FieldsDisplayService } from './services/fieldsDisplay.service';
 
 @Component({
   selector: 'odkxm-root',
@@ -14,10 +15,9 @@ import Animations from './animations';
 export class AppComponent {
   appVersion = environment.appVersion;
   pages: IPage[];
-  constructor(public odkService: OdkService) {
-    this.pages = routes
-      .filter((r) => r.data && r.data.menu)
-      .map((r) => r.data.menu as any);
+  /** Eagerly load the odk and field display services so that they can initialise */
+  constructor(public odkService: OdkService, public fieldsDisplayService: FieldsDisplayService) {
+    this.pages = routes.filter((r) => r.data && r.data.menu).map((r) => r.data.menu as any);
   }
   /**
    * Use the title of the page to assign/change animation state

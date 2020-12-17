@@ -7,11 +7,7 @@ import { Subscription } from 'rxjs';
 @Component({
   selector: 'odkxm-app-table-select',
   template: `
-    <form
-      *ngIf="(odkService.allAppIds$ | async).length > 0"
-      #f="ngForm"
-      style="display:flex; "
-    >
+    <form *ngIf="(odkService.allAppIds$ | async).length > 0" #f="ngForm" style="display:flex; ">
       <mat-form-field>
         <mat-label>App ID</mat-label>
         <select
@@ -19,10 +15,7 @@ import { Subscription } from 'rxjs';
           (change)="odkService.setActiveAppId($event)"
           [value]="odkService.appId$ | async"
         >
-          <option
-            *ngFor="let appId of odkService.allAppIds$ | async"
-            [value]="appId"
-          >
+          <option *ngFor="let appId of odkService.allAppIds$ | async" [value]="appId">
             {{ appId }}
           </option>
         </select>
@@ -37,7 +30,7 @@ import { Subscription } from 'rxjs';
           (change)="odkService.setActiveTable(activeTableControl.value)"
         >
           <option
-            *ngFor="let table of odkService.allTables$ | async"
+            *ngFor="let table of odkService.allTables$ | async | appFieldsDisplay: 'tables'"
             [ngValue]="table"
           >
             {{ table.tableId }}
