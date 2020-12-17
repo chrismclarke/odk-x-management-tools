@@ -28,7 +28,6 @@ export class FieldsDisplayPipe implements PipeTransform {
   transform(value: any, ...args: any[]): any {
     const transformation: 'tables' | 'fields' = args[0];
     const tableId: string = args[1];
-    console.log('transform', value, args);
     switch (transformation) {
       case 'tables':
         return value.filter((v) => !this.fieldsDisplayService.getTableHidden(v.tableId));

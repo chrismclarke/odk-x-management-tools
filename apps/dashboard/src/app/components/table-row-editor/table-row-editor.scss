@@ -35,6 +35,13 @@
   flex: 1;
   display: flex;
 }
+.field-value-meta.field-display-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.field-value-meta.field-display-disabled > * {
+  pointer-events: none;
+}
 .field-value {
   padding: 5px;
   flex: 1;

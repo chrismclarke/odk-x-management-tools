@@ -66,8 +66,8 @@ export class FieldsDisplayService {
             fieldDisplay.fieldGlobal[fieldName] = display;
           }
         }
-        console.log('field display', fieldDisplay);
         this.fieldsDisplay = fieldDisplay;
+        console.log('fieldsDisplay', fieldDisplay);
       },
       // ignore error if file does not exist and just populate template file
       () => null
