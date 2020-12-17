@@ -14,6 +14,7 @@ import {
   TableActionsBackupDialogComponent,
 } from './table-actions';
 import { TableRowEditorModule } from './table-row-editor/table-row-editor.module';
+import { SharedPipesModule } from '../pipes';
 
 const CUSTOM_COMPONENTS = [
   ServerLoginComponent,
@@ -33,6 +34,7 @@ const CUSTOM_COMPONENTS = [
     CommonModule,
     AgGridModule.withComponents([]),
     TableRowEditorModule,
+    SharedPipesModule,
   ],
   exports: [...CUSTOM_COMPONENTS],
   declarations: [CUSTOM_COMPONENTS],

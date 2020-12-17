@@ -18,6 +18,7 @@
         class="field-value-meta"
         [ngSwitch]="field.type"
         [attr.data-field-changed]="fieldsChanged[field.name]"
+        [ngClass]="field._fieldDisplayDisabled ? 'field-display-disabled':''"
       >
         <div style="flex: 1">
           <!-- Question type handlers -->

@@ -5,6 +5,7 @@ import { MaterialComponentsModule } from '../material-components.module';
 import { TableRowEditorDialogComponent } from './table-row-editor';
 import { ODKXPromptsModule } from './prompts/prompts.module';
 import { InputAttributesDisplay } from './components/input-attributes-display';
+import { SharedPipesModule } from '../../pipes';
 
 @NgModule({
   imports: [
@@ -13,6 +14,7 @@ import { InputAttributesDisplay } from './components/input-attributes-display';
     ReactiveFormsModule,
     ODKXPromptsModule,
     MaterialComponentsModule,
+    SharedPipesModule,
   ],
   exports: [],
   declarations: [TableRowEditorDialogComponent, InputAttributesDisplay],

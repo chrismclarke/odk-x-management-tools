@@ -13,6 +13,7 @@ import {
   ITableRow,
   ITableSchema,
 } from '../../types/odk.types';
+import { FieldsDisplayService } from '../../services/fieldsDisplay.service';
 /**
  *
  * TODO
@@ -38,6 +39,7 @@ export class TableRowEditorDialogComponent implements AfterViewInit, OnDestroy {
   constructor(
     private odkService: OdkService,
     private notifications: NotificationService,
+    private fieldsDisplayService: FieldsDisplayService,
     public dialogRef: MatDialogRef<TableRowEditorDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: ITableRowEditorData
   ) {}
@@ -58,12 +60,20 @@ export class TableRowEditorDialogComponent implements AfterViewInit, OnDestroy {
 
   private async init() {
     const fields = await this.getFieldsFromFormDef();
-    this.fields = fields;
-    console.log('fields', arrayToHashmap(this.fields, 'name'));
-    this.formGroup = this.buildFormGroupFromFields(this.fields);
+
+    console.log('fields', arrayToHashmap(fields, 'name'));
+    this.formGroup = this.buildFormGroupFromFields(fields);
     this.initialValues = this.formGroup.value;
     console.log('initialValues', this.initialValues);
     this._subscribeToFormChanges();
+    // hide fields and mark disabled depending on displayFields before binding to display list
+    const { tableId } = this.odkService.table$.value;
+    this.fields = fields
+      .filter((f) => !this.fieldsDisplayService.getFieldHidden(tableId, f.name))
+      .map((f) => ({
+        ...f,
+        _fieldDisplayDisabled: this.fieldsDisplayService.getFieldDisabled(tableId, f.name),
+      }));
     this.isLoading = false;
     setTimeout(() => {
       this.scrollToField(this.data.colId);
@@ -161,7 +171,9 @@ export class TableRowEditorDialogComponent implements AfterViewInit, OnDestroy {
     const { table, row } = this.data;
     const { tableId } = table;
     const formdef: IFormDef = await this.odkService.getFormdef(tableId);
+    console.log('formdef', formdef);
     const promptsByName = extractFormdefPromptsByName(formdef);
+    console.log('promptsByName', promptsByName);
     const fields: ISurveyRowWithValue[] = [];
     // create field placeholders for all survey rows that have a name,
     // corresponding prompt entry and survey prompt type
