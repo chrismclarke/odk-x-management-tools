@@ -43,8 +43,9 @@ export class FieldsDisplayService {
    */
   private async processCustomFieldDisplay() {
     const fieldDisplay: IFieldDisplay = { tableGlobal: {}, fieldGlobal: {}, tableField: {} };
-    this.http.get('assets/fieldsDisplay.json').subscribe(
+    this.http.get('assets/fieldsDisplay.json', { responseType: 'json' }).subscribe(
       (rows: IFieldDisplayRow[]) => {
+        console.log('loaded fields display rows', rows);
         for (const row of rows) {
           const { tableId, fieldName, disabled, hidden, order } = row;
           const display: IDisplayOptions = {
@@ -70,7 +71,7 @@ export class FieldsDisplayService {
         console.log('fieldsDisplay', fieldDisplay);
       },
       // ignore error if file does not exist and just populate template file
-      () => null
+      (err) => console.log('could not load fields display', err)
     );
   }
 }
