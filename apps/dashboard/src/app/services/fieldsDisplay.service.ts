@@ -43,36 +43,41 @@ export class FieldsDisplayService {
    */
   private async processCustomFieldDisplay() {
     const fieldDisplay: IFieldDisplay = { tableGlobal: {}, fieldGlobal: {}, tableField: {} };
-    this.http.get('assets/fieldsDisplay.json', { responseType: 'json' }).subscribe(
-      (rows: IFieldDisplayRow[]) => {
-        console.log('loaded fields display rows', rows);
-        for (const row of rows) {
-          const { tableId, fieldName, disabled, hidden, order } = row;
-          const display: IDisplayOptions = {
-            disabled: strToBool(disabled),
-            hidden: strToBool(hidden),
-            order: order ? order : null,
-          };
-          if (tableId) {
-            if (fieldName) {
-              // tableField display setting
-              fieldDisplay.tableField[tableId] = { ...fieldDisplay.tableField[tableId] };
-              fieldDisplay.tableField[tableId][fieldName] = display;
-            } else {
-              // global table display setting
-              fieldDisplay.tableGlobal[tableId] = display;
+    this.http
+      .get('assets/fieldsDisplay.json', {
+        responseType: 'json',
+        headers: { 'Cache-Control': 'no-cache' },
+      })
+      .subscribe(
+        (rows: IFieldDisplayRow[]) => {
+          console.log('loaded fields display rows', rows);
+          for (const row of rows) {
+            const { tableId, fieldName, disabled, hidden, order } = row;
+            const display: IDisplayOptions = {
+              disabled: strToBool(disabled),
+              hidden: strToBool(hidden),
+              order: order ? order : null,
+            };
+            if (tableId) {
+              if (fieldName) {
+                // tableField display setting
+                fieldDisplay.tableField[tableId] = { ...fieldDisplay.tableField[tableId] };
+                fieldDisplay.tableField[tableId][fieldName] = display;
+              } else {
+                // global table display setting
+                fieldDisplay.tableGlobal[tableId] = display;
+              }
+            } else if (fieldName) {
+              // global field display setting
+              fieldDisplay.fieldGlobal[fieldName] = display;
             }
-          } else if (fieldName) {
-            // global field display setting
-            fieldDisplay.fieldGlobal[fieldName] = display;
           }
-        }
-        this.fieldsDisplay = fieldDisplay;
-        console.log('fieldsDisplay', fieldDisplay);
-      },
-      // ignore error if file does not exist and just populate template file
-      (err) => console.log('could not load fields display', err)
-    );
+          this.fieldsDisplay = fieldDisplay;
+          console.log('fieldsDisplay', fieldDisplay);
+        },
+        // ignore error if file does not exist and just populate template file
+        (err) => console.log('could not load fields display', err)
+      );
   }
 }
 
