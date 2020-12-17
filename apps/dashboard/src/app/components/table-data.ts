@@ -9,6 +9,7 @@ import {
 } from 'ag-grid-community';
 import { ITableRow, ITableSchema } from '../types/odk.types';
 import { OdkService } from '../services/odk';
+import { FieldsDisplayService } from '../services/fieldsDisplay.service';
 
 @Component({
   selector: 'odkxm-table-data',
@@ -108,7 +109,7 @@ export class TableDataComponent {
     }
   }
 
-  constructor(public odkService: OdkService) {
+  constructor(public odkService: OdkService, private fieldsDisplayService: FieldsDisplayService) {
     this.columnDefaults = {
       sortable: true,
       filter: true,
@@ -156,7 +157,18 @@ export class TableDataComponent {
         displayColumns.push(mapping);
       }
     });
-    return displayColumns;
+    // filter columns according to fields display settings
+    const filteredColumns = this.fieldsDisplayService.filterHiddenFields(
+      this.odkService.table$.value.tableId,
+      displayColumns,
+      'field'
+    );
+    const reOrderedColumns = this.fieldsDisplayService.orderFields(
+      this.odkService.table$.value.tableId,
+      filteredColumns,
+      'field'
+    );
+    return reOrderedColumns;
   }
 }
 
