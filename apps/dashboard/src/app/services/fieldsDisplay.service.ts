@@ -13,46 +13,25 @@ export class FieldsDisplayService {
     this.processCustomFieldDisplay();
   }
 
-  /**
-   * Check tables against global table hidden exclusions and return filtered list
-   * @param tables - an object array to filter on and return
-   * @param tableIdKey - object property to lookup to identify the tableId within the tables array
-   * */
-  filterHiddenTables(tables: any[], tableIdKey = 'tableId') {
-    return tables.filter((t) => {
-      const tableId = t[tableIdKey];
-      return !this.fieldsDisplay.tableGlobal[tableId]?.hidden;
-    });
+  getTableHidden(tableId: string) {
+    return this.fieldsDisplay.tableGlobal[tableId]?.hidden ? true : false;
   }
-
-  /**
-   * Check fields against global and table-specific hidden exclusions and return filtered list
-   * @param tableId - id of table to check against table-specific exclusions
-   * @param fields - an object array to filter on and return
-   * @param fieldNameKey - object property to lookup to identify the fieldName within the fields array
-   */
-  filterHiddenFields(tableId: string, fields: any[], fieldNameKey = 'fieldName') {
-    return fields.filter((f) => {
-      const fieldname = f[fieldNameKey];
-      return (
-        !this.fieldsDisplay.fieldGlobal[fieldname]?.hidden &&
-        !this.fieldsDisplay.tableField[tableId]?.[fieldname]?.hidden
-      );
-    });
-  }
-
-  orderFields(tableId: string, fields: any[], fieldNameKey = 'fieldName') {
-    return fields.sort((a, b) => {
-      const orderA = this._lookupOrder(tableId, a[fieldNameKey]);
-      const orderB = this._lookupOrder(tableId, b[fieldNameKey]);
-      return orderA - orderB;
-    });
-  }
-
-  private _lookupOrder(tableId: string, fieldname: string) {
+  getFieldHidden(tableId: string, fieldName: string) {
     return (
-      this.fieldsDisplay.fieldGlobal[fieldname]?.order ||
-      this.fieldsDisplay.tableField[tableId]?.[fieldname]?.order ||
+      this.fieldsDisplay.fieldGlobal[fieldName]?.hidden ||
+      this.fieldsDisplay.tableField[tableId]?.[fieldName]?.hidden
+    );
+  }
+  getFieldDisabled(tableId: string, fieldName: string) {
+    return (
+      this.fieldsDisplay.fieldGlobal[fieldName]?.disabled ||
+      this.fieldsDisplay.tableField[tableId]?.[fieldName]?.disabled
+    );
+  }
+  getFieldOrder(tableId: string, fieldName: string) {
+    return (
+      this.fieldsDisplay.fieldGlobal[fieldName]?.order ||
+      this.fieldsDisplay.tableField[tableId]?.[fieldName]?.order ||
       Infinity
     );
   }
@@ -71,7 +50,7 @@ export class FieldsDisplayService {
           const display: IDisplayOptions = {
             disabled: strToBool(disabled),
             hidden: strToBool(hidden),
-            order: order || Infinity,
+            order: order ? order : null,
           };
           if (tableId) {
             if (fieldName) {
