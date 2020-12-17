@@ -80,7 +80,10 @@ import { FieldsDisplayService } from '../services/fieldsDisplay.service';
       }
       .cell.non-editable {
         opacity: 0.7;
-        cursor: default;
+      }
+      .cell.field-display-disabled,
+      .header.field-display-disabled {
+        opacity: 0.7;
       }
     `,
   ],
@@ -142,6 +145,8 @@ export class TableDataComponent {
       return {
         field: c.elementKey,
         onCellClicked: (e: CellValueChangedEvent) => this.onCellClicked(e),
+        cellClass: 'cell',
+        headerClass: 'header',
       };
     });
     // Add non-editable metadata keys at start and end of table
@@ -157,17 +162,27 @@ export class TableDataComponent {
         displayColumns.push(mapping);
       }
     });
-    // filter columns according to fields display settings
-    const filteredColumns = this.fieldsDisplayService.filterHiddenFields(
-      this.odkService.table$.value.tableId,
-      displayColumns,
-      'field'
-    );
-    const reOrderedColumns = this.fieldsDisplayService.orderFields(
-      this.odkService.table$.value.tableId,
-      filteredColumns,
-      'field'
-    );
+    // format and reorder columns according to fields display settings
+    const { tableId } = this.odkService.table$.value;
+    const columnsWithDisplayClass = displayColumns.map((c) => {
+      const isHidden = this.fieldsDisplayService.getFieldHidden(tableId, c.field);
+      const isDisabled = this.fieldsDisplayService.getFieldDisabled(tableId, c.field);
+      if (isHidden) {
+        c.hide = true;
+      }
+      if (isDisabled) {
+        c.cellClass += ' field-display-disabled';
+        c.headerClass += ' field-display-disabled';
+      }
+      return c;
+    });
+    const reOrderedColumns = columnsWithDisplayClass.sort((a, b) => {
+      return (
+        this.fieldsDisplayService.getFieldOrder(tableId, a.field) -
+        this.fieldsDisplayService.getFieldOrder(tableId, b.field)
+      );
+    });
+
     return reOrderedColumns;
   }
 }

@@ -28,12 +28,22 @@ export class FieldsDisplayPipe implements PipeTransform {
   transform(value: any, ...args: any[]): any {
     const transformation: 'tables' | 'fields' = args[0];
     const tableId: string = args[1];
-    if (transformation === 'tables') {
-      return this.fieldsDisplayService.filterHiddenTables(value);
+    console.log('transform', value, args);
+    switch (transformation) {
+      case 'tables':
+        return value.filter((v) => !this.fieldsDisplayService.getTableHidden(v.tableId));
+      // case 'fields':
+      //   if (tableId) {
+      //     return value.filter((v) =>
+      //       this.fieldsDisplayService.getFieldHidden(tableId, v.fieldName)
+      //     );
+      //   } else {
+      //     console.error('tableId not specified for transformation');
+      //     return value;
+      //   }
+      default:
+        console.error('transformation not defined', transformation);
+        return value;
     }
-    if (transformation === 'fields' && tableId) {
-      return this.fieldsDisplayService.filterHiddenFields(tableId, value);
-    }
-    return value;
   }
 }
