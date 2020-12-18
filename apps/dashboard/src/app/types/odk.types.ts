@@ -287,7 +287,7 @@ interface IFormDefSpecification {
   properties: any[];
   queries: any;
   section_names: string[];
-  sections: any;
+  sections: { [section_name: string]: IFormSection };
   settings: any;
 }
 export interface IFormDefSpecificationChoice {
@@ -295,4 +295,14 @@ export interface IFormDefSpecificationChoice {
   data_value: string;
   display: { title: { text: string } };
   _row_num: number;
+}
+
+export interface IFormSection {
+  branch_label_map: any;
+  nested_sections: { [section_name: string]: boolean };
+  operations: any[];
+  prompts: ISurveyWorksheetRow[];
+  reachable_sections: { [section_name: string]: boolean };
+  section_name: string;
+  validation_tag_map: any;
 }

@@ -159,6 +159,34 @@ export class OdkService {
     this._cache[cachePath] = formDef;
     return this.getFormdef(tableId, formId);
   }
+  /**
+   * ODK specifies section labels either within the settings screen or within choice lists
+   * Identify which if settings or choice list used and lookup
+   * */
+  getFormdefSectionLabels(formDef: IODK.IFormDef) {
+    const labels = {};
+    const sectionNames = formDef.specification.section_names;
+    // Check if branches are used in main survey
+    // Additionally check for custom CWBC contents page which also functions as a user_branch
+    const branch_prompt_names = ['user_branch', 'custom_contents_page'];
+    const branch_choice_list = formDef.specification.sections.survey?.prompts.find((p) =>
+      branch_prompt_names.includes(p.type)
+    )?.values_list;
+    for (const sectionName of sectionNames) {
+      let choiceLabel: string;
+      // retrieve from choice list
+      if (branch_choice_list) {
+        choiceLabel = formDef.specification.choices[branch_choice_list].find(
+          (c) => c.data_value === sectionName
+        )?.display?.title?.text;
+      }
+      // retrieve from settings
+      const settingsLabel = formDef.specification.settings[sectionName]?.display?.title?.text;
+      // return first of whichever of these values exist
+      labels[sectionName] = choiceLabel || settingsLabel || sectionName;
+    }
+    return labels;
+  }
 
   /**
    * When updating rows first

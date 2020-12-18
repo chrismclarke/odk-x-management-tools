@@ -5,128 +5,140 @@
     <span style="margin-left: 1em">Loading Survey Questions</span>
   </div>
   <form [formGroup]="formGroup" class="form-container" #formEl>
-    <div
-      *ngFor="let field of fields; trackBy:trackByFieldName"
-      class="form-row"
-      [id]="'field-container-'+field.name"
+    <mat-tab-group
+      dynamicHeight
+      [selectedIndex]="activeSectionIndex"
+      [animationDuration]="tabAnimationSpeed"
     >
-      <div class="field-meta">
-        <div class="field-prompt">{{ field.display?.prompt?.text }}</div>
-        <div class="field-name">{{ field.name }}</div>
-      </div>
-      <div
-        class="field-value-meta"
-        [ngSwitch]="field.type"
-        [attr.data-field-changed]="fieldsChanged[field.name]"
-        [ngClass]="field._fieldDisplayDisabled ? 'field-display-disabled':''"
-      >
-        <div style="flex: 1">
-          <!-- Question type handlers -->
-          <div class="field-input-container">
-            <!-- TODO - refactor to individual components -->
-            <input *ngSwitchCase="'text'" [formControlName]="field.name" />
-            <input
-              type="number"
-              *ngSwitchCase="'decimal'"
-              [formControlName]="field.name"
-              [odkxmInputAttributes]="field.inputAttributes"
-            />
-            <textarea *ngSwitchCase="'textarea'" [formControlName]="field.name"></textarea>
-            <select *ngSwitchCase="'select_one'" [formControlName]="field.name">
-              <option [selected]="!field.value"></option>
-              <option *ngFor="let option of field.select_options" [value]="option.value">
-                {{option.value}} - {{option.label}}
-              </option>
-            </select>
-            <select *ngSwitchCase="'select_one_dropdown'" [formControlName]="field.name">
-              <option [selected]="!field.value"></option>
-              <option
-                *ngFor="let option of field.select_options"
-                [value]="option.value"
-                [selected]="option.value===field.value"
+      <mat-tab [label]="section.section_label" *ngFor="let section of sections">
+        <ng-template matTabContent>
+          <div>
+            <div
+              *ngFor="let field of section.prompts; trackBy:trackByFieldName"
+              class="form-row"
+              [id]="'field-container-'+field.name"
+            >
+              <div class="field-meta">
+                <div class="field-prompt">{{ field.display?.prompt?.text }}</div>
+                <div class="field-name">{{ field.name }}</div>
+              </div>
+              <div
+                class="field-value-meta"
+                [ngSwitch]="field.type"
+                [attr.data-field-changed]="fieldsChanged[field.name]"
+                [ngClass]="field._fieldDisplayDisabled ? 'field-display-disabled':''"
               >
-                {{option.value}} - {{option.label}}
-              </option>
-            </select>
-            <odkxm-prompt-integer
-              *ngSwitchCase="'integer'"
-              [odkxColumns]="field"
-              [formControlName]="field.name"
-            ></odkxm-prompt-integer>
-            <odkxm-prompt-time
-              *ngSwitchCase="'time'"
-              [odkxColumns]="field"
-              [formControlName]="field.name"
-            >
-            </odkxm-prompt-time>
-            <odkxm-prompt-select-multiple
-              *ngSwitchCase="'select_multiple'"
-              [odkxColumns]="field"
-              [formControlName]="field.name"
-            >
-            </odkxm-prompt-select-multiple>
+                <div style="flex: 1">
+                  <!-- Question type handlers -->
+                  <div class="field-input-container">
+                    <!-- TODO - refactor to individual components -->
+                    <input *ngSwitchCase="'text'" [formControlName]="field.name" />
+                    <input
+                      type="number"
+                      *ngSwitchCase="'decimal'"
+                      [formControlName]="field.name"
+                      [odkxmInputAttributes]="field.inputAttributes"
+                    />
+                    <textarea *ngSwitchCase="'textarea'" [formControlName]="field.name"></textarea>
+                    <select *ngSwitchCase="'select_one'" [formControlName]="field.name">
+                      <option [selected]="!field.value"></option>
+                      <option *ngFor="let option of field.select_options" [value]="option.value">
+                        {{option.value}} - {{option.label}}
+                      </option>
+                    </select>
+                    <select *ngSwitchCase="'select_one_dropdown'" [formControlName]="field.name">
+                      <option [selected]="!field.value"></option>
+                      <option
+                        *ngFor="let option of field.select_options"
+                        [value]="option.value"
+                        [selected]="option.value===field.value"
+                      >
+                        {{option.value}} - {{option.label}}
+                      </option>
+                    </select>
+                    <odkxm-prompt-integer
+                      *ngSwitchCase="'integer'"
+                      [odkxColumns]="field"
+                      [formControlName]="field.name"
+                    ></odkxm-prompt-integer>
+                    <odkxm-prompt-time
+                      *ngSwitchCase="'time'"
+                      [odkxColumns]="field"
+                      [formControlName]="field.name"
+                    >
+                    </odkxm-prompt-time>
+                    <odkxm-prompt-select-multiple
+                      *ngSwitchCase="'select_multiple'"
+                      [odkxColumns]="field"
+                      [formControlName]="field.name"
+                    >
+                    </odkxm-prompt-select-multiple>
 
-            <!-- Custom Prompt Types (CWBC-specific) -->
-            <cwbc-custom-date-picker
-              *ngSwitchCase="'custom_date_picker'"
-              [formControlName]="field.name"
-              [odkxColumns]="field"
-            ></cwbc-custom-date-picker>
-            <cwbc-custom-date
-              *ngSwitchCase="'custom_date'"
-              [formControlName]="field.name"
-              [odkxColumns]="field"
-            ></cwbc-custom-date>
-            <cwbc-custom-date-notoday
-              *ngSwitchCase="'custom_date_notoday'"
-              [formControlName]="field.name"
-              [odkxColumns]="field"
-            ></cwbc-custom-date-notoday>
-            <cwbc-custom-datetime-picker
-              *ngSwitchCase="'custom_datetime_picker'"
-              [formControlName]="field.name"
-              [odkxColumns]="field"
-            ></cwbc-custom-datetime-picker>
-            <cwbc-custom-number
-              *ngSwitchCase="'custom_number'"
-              [formControlName]="field.name"
-              [odkxColumns]="field"
-            ></cwbc-custom-number>
-            <cwbc-custom-number-na
-              *ngSwitchCase="'custom_number_na'"
-              [formControlName]="field.name"
-              [odkxColumns]="field"
-            ></cwbc-custom-number-na>
-            <cwbc-custom-section-complete
-              *ngSwitchCase="'custom_section_complete'"
-              [formControlName]="field.name"
-              [odkxColumns]="field"
-            ></cwbc-custom-section-complete>
+                    <!-- Custom Prompt Types (CWBC-specific) -->
+                    <cwbc-custom-date-picker
+                      *ngSwitchCase="'custom_date_picker'"
+                      [formControlName]="field.name"
+                      [odkxColumns]="field"
+                    ></cwbc-custom-date-picker>
+                    <cwbc-custom-date
+                      *ngSwitchCase="'custom_date'"
+                      [formControlName]="field.name"
+                      [odkxColumns]="field"
+                    ></cwbc-custom-date>
+                    <cwbc-custom-date-notoday
+                      *ngSwitchCase="'custom_date_notoday'"
+                      [formControlName]="field.name"
+                      [odkxColumns]="field"
+                    ></cwbc-custom-date-notoday>
+                    <cwbc-custom-datetime-picker
+                      *ngSwitchCase="'custom_datetime_picker'"
+                      [formControlName]="field.name"
+                      [odkxColumns]="field"
+                    ></cwbc-custom-datetime-picker>
+                    <cwbc-custom-number
+                      *ngSwitchCase="'custom_number'"
+                      [formControlName]="field.name"
+                      [odkxColumns]="field"
+                    ></cwbc-custom-number>
+                    <cwbc-custom-number-na
+                      *ngSwitchCase="'custom_number_na'"
+                      [formControlName]="field.name"
+                      [odkxColumns]="field"
+                    ></cwbc-custom-number-na>
+                    <cwbc-custom-section-complete
+                      *ngSwitchCase="'custom_section_complete'"
+                      [formControlName]="field.name"
+                      [odkxColumns]="field"
+                    ></cwbc-custom-section-complete>
 
-            <div *ngSwitchCase="'assign'">{{ field.value }}</div>
-            <div *ngSwitchDefault>{{field.value}}</div>
+                    <div *ngSwitchCase="'assign'">{{ field.value }}</div>
+                    <div *ngSwitchDefault>{{field.value}}</div>
+                  </div>
+                  <!-- Additional input attributes metadata -->
+                  <odkxm-input-attributes-display
+                    *ngIf="field.inputAttributes"
+                    [inputAttributes]="field.inputAttributes"
+                  >
+                  </odkxm-input-attributes-display>
+                </div>
+                <div class="field-type">
+                  <span>{{ field.type }}</span>
+                  <mat-icon class="field-calc-icon" *ngIf="field.calculation">calculate</mat-icon>
+                </div>
+                <button
+                  class="edit-undo-button"
+                  mat-button
+                  *ngIf="fieldsChanged[field.name]"
+                  (click)="undoEdit(field.name)"
+                >
+                  <mat-icon>undo</mat-icon>
+                </button>
+              </div>
+            </div>
           </div>
-          <!-- Additional input attributes metadata -->
-          <odkxm-input-attributes-display
-            *ngIf="field.inputAttributes"
-            [inputAttributes]="field.inputAttributes"
-          >
-          </odkxm-input-attributes-display>
-        </div>
-        <div class="field-type">
-          <span>{{ field.type }}</span>
-          <mat-icon class="field-calc-icon" *ngIf="field.calculation">calculate</mat-icon>
-        </div>
-        <button
-          class="edit-undo-button"
-          mat-button
-          *ngIf="fieldsChanged[field.name]"
-          (click)="undoEdit(field.name)"
-        >
-          <mat-icon>undo</mat-icon>
-        </button>
-      </div>
-    </div>
+        </ng-template>
+      </mat-tab>
+    </mat-tab-group>
   </form>
 
   <div mat-dialog-actions style="margin-top: auto; margin-left: auto">

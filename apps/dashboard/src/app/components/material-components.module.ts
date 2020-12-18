@@ -7,6 +7,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatSelectModule } from '@angular/material/select';
 import { MatTableModule } from '@angular/material/table';
+import { MatTabsModule } from '@angular/material/tabs';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatSidenavModule } from '@angular/material/sidenav';
 import { MatListModule } from '@angular/material/list';
@@ -24,6 +25,7 @@ const MAT_COMPONENTS = [
   MatPaginatorModule,
   MatSelectModule,
   MatTableModule,
+  MatTabsModule,
   MatSnackBarModule,
   MatSidenavModule,
   MatListModule,
