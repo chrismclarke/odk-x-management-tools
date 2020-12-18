@@ -2,13 +2,13 @@ import { AfterViewInit, Component, ElementRef, Inject, OnDestroy, ViewChild } fr
 import { FormControl, FormGroup } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { Subscription } from 'rxjs';
-import { arrayToHashmap } from '../../utils/utils';
 import { NotificationService } from '../../services/notification.service';
 import { OdkService } from '../../services/odk';
-import { extractFormdefPromptsByName } from '../../services/odk/odk.utils';
 import {
   IFormDef,
+  IFormSection,
   ISurveyRowWithValue,
+  ISurveyWorksheetRow,
   ITableMeta,
   ITableRow,
   ITableSchema,
@@ -30,7 +30,8 @@ export class TableRowEditorDialogComponent implements AfterViewInit, OnDestroy {
   isLoading = true;
   isSaving = false;
   initialValues: { [fieldname: string]: string };
-  fields: ISurveyRowWithValue[] = [];
+  // fields: ISurveyRowWithValue[] = [];
+  sections: IFormPromptSection[] = [];
   formGroup: FormGroup = new FormGroup({});
   formChanges$: Subscription;
   /** Keep list of fields that have changed for css styling */
@@ -59,21 +60,11 @@ export class TableRowEditorDialogComponent implements AfterViewInit, OnDestroy {
   }
 
   private async init() {
-    const fields = await this.getFieldsFromFormDef();
-
-    console.log('fields', arrayToHashmap(fields, 'name'));
-    this.formGroup = this.buildFormGroupFromFields(fields);
+    this.sections = await this.getFormDefPromptsBySection();
+    this.formGroup = this.buildFormGroupFromSections(this.sections);
     this.initialValues = this.formGroup.value;
     console.log('initialValues', this.initialValues);
     this._subscribeToFormChanges();
-    // hide fields and mark disabled depending on displayFields before binding to display list
-    const { tableId } = this.odkService.table$.value;
-    this.fields = fields
-      .filter((f) => !this.fieldsDisplayService.getFieldHidden(tableId, f.name))
-      .map((f) => ({
-        ...f,
-        _fieldDisplayDisabled: this.fieldsDisplayService.getFieldDisabled(tableId, f.name),
-      }));
     this.isLoading = false;
     setTimeout(() => {
       this.scrollToField(this.data.colId);
@@ -167,45 +158,79 @@ export class TableRowEditorDialogComponent implements AfterViewInit, OnDestroy {
    * Load the formdef for the current data row and extract all questions,
    * labels and select options
    */
-  private async getFieldsFromFormDef() {
+  private async getFormDefPromptsBySection() {
     const { table, row } = this.data;
+    const values = row;
     const { tableId } = table;
     const formdef: IFormDef = await this.odkService.getFormdef(tableId);
+    const sectionLabels = this.odkService.getFormdefSectionLabels(formdef);
     console.log('formdef', formdef);
-    const promptsByName = extractFormdefPromptsByName(formdef);
-    console.log('promptsByName', promptsByName);
-    const fields: ISurveyRowWithValue[] = [];
-    // create field placeholders for all survey rows that have a name,
-    // corresponding prompt entry and survey prompt type
-    Object.entries(row).forEach(([name, value]) => {
-      if (name && promptsByName.hasOwnProperty(name)) {
-        if (promptsByName[name].hasOwnProperty('type')) {
-          const field: ISurveyRowWithValue = {
-            ...promptsByName[name],
-            name,
-            value,
-          };
-          // populate choice values where requierd
-          if (field.hasOwnProperty('values_list')) {
-            field.select_options = formdef.specification.choices[field.values_list].map((v) => ({
-              value: v.data_value,
-              label: v.display.title.text,
-            }));
-          }
-          fields.push(field);
+    // const promptsByName = extractFormdefPromptsByName(formdef);
+    // console.log('promptsByName', promptsByName);
+    const sections: IFormPromptSection[] = Object.values(formdef.specification.sections)
+      .filter((s) => s.section_name !== 'initial')
+      .map((s) => ({
+        ...s,
+        section_label: sectionLabels[s.section_name],
+        prompts: this.mapSectionPrompts(s.prompts, values, formdef.specification.choices),
+      }));
+    console.log('sections', sections);
+    return sections;
+  }
+  /**
+   * For each prompt lookup and assign any values and values_list options
+   * Apply custom fieldsDisplay configuration overrids
+   */
+  private mapSectionPrompts(
+    prompts: ISurveyWorksheetRow[],
+    values: { [prompt_name: string]: any },
+    choices: IFormDef['specification']['choices']
+  ) {
+    const mappedPrompts: ISurveyRowWithValue[] = [];
+    prompts.forEach((prompt) => {
+      // filter to include only named prompts that exist in values
+      const { name } = prompt;
+      if (name && values.hasOwnProperty(name)) {
+        const field: ISurveyRowWithValue = { ...prompt, value: values[name] };
+        // populate choice values where requierd
+        if (field.hasOwnProperty('values_list')) {
+          field.select_options = choices[field.values_list].map((v) => ({
+            value: v.data_value,
+            label: v.display.title.text,
+          }));
         }
+        mappedPrompts.push(field);
       }
     });
-    return fields;
+    // Apply custom fields display configuration overrides
+    const { tableId } = this.odkService.table$.value;
+    const displayFieldPrompts = this.applyFieldDisplayConfiguration(mappedPrompts, tableId);
+    return displayFieldPrompts;
+  }
+  /** Load any custom display changes due to displayFields configuration  */
+  private applyFieldDisplayConfiguration(fields: ISurveyRowWithValue[], tableId: string) {
+    return fields
+      .filter((f) => !this.fieldsDisplayService.getFieldHidden(tableId, f.name))
+      .map((f) => {
+        const _fieldDisplayDisabled = this.fieldsDisplayService.getFieldDisabled(tableId, f.name);
+        return { ...f, _fieldDisplayDisabled };
+      });
   }
 
-  private buildFormGroupFromFields(fields: ISurveyRowWithValue[]) {
+  /**
+   * Create a formgroup based on the prompts that appear in the different form sections
+   * Note - this could be initialised from values, but better to access full prompt objects in
+   * case wanting to include validators or validating by section
+   * */
+  private buildFormGroupFromSections(sections: IFormPromptSection[]) {
     const formgroup = new FormGroup({});
-    for (const field of fields) {
-      // TODO - could add validators (but might want a way user can disable first)
-      // TODO - handle serialisation of select multiple
-      formgroup.addControl(field.name, new FormControl(field.value, []));
+    for (const section of sections) {
+      for (const prompt of section.prompts) {
+        formgroup.addControl(prompt.name, new FormControl(prompt.value, []));
+      }
     }
+    // TODO - could add validators (but might want a way user can disable first)
+    // TODO - validators could also include data type expected (although most parse strings fine so maybe not to worry?)
     return formgroup;
   }
 
@@ -226,4 +251,9 @@ export interface ITableRowEditorData {
   colId: string;
   table: ITableMeta;
   schema: ITableSchema;
+}
+
+interface IFormPromptSection extends IFormSection {
+  section_label: string;
+  prompts: ISurveyRowWithValue[];
 }
