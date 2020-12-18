@@ -1,3 +1,4 @@
+@use "sass:color";
 @import '~@angular/material/theming';
 @include mat-core();
 // see https://material.angular.io/guide/theming
@@ -34,4 +35,18 @@ $c2dev-theme: mat-light-theme($c2dev-app-primary, $c2dev-app-accent);
 .theme-c2dev {
   @include angular-material-theme($c2dev-theme);
   @include custom-component-mixin($c2dev-theme);
+}
+
+// adjust and remap theme colors for direct variable access
+
+$primary: mat-color($c2dev-app-primary);
+$primary-light: color.change($primary, $lightness: 80%);
+$accent: mat-color($c2dev-app-accent);
+$accent-light: color.change($accent, $lightness: 80%);
+
+body {
+  --color-primary: #{$primary};
+  --color-primary-light: #{$primary-light};
+  --color-accent: #{$accent};
+  --color-accent-light: #{$accent-light};
 }

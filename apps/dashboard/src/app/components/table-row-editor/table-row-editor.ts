@@ -32,6 +32,10 @@ export class TableRowEditorDialogComponent implements AfterViewInit, OnDestroy {
   initialValues: { [fieldname: string]: string };
   // fields: ISurveyRowWithValue[] = [];
   sections: IFormPromptSection[] = [];
+  /** Dynamically change which section should be active in the tabs */
+  activeSectionIndex = 0;
+  /** Adjust to remove tab change animations */
+  tabAnimationSpeed = 2000;
   formGroup: FormGroup = new FormGroup({});
   formChanges$: Subscription;
   /** Keep list of fields that have changed for css styling */
@@ -141,17 +145,33 @@ export class TableRowEditorDialogComponent implements AfterViewInit, OnDestroy {
   }
 
   private scrollToField(fieldname: string) {
-    const formEl = this.formEl.nativeElement;
-    formEl.scrollTop = 0;
-    const scrollTarget = formEl.querySelector(`#field-container-${fieldname}`) as HTMLDivElement;
-    if (scrollTarget) {
-      // manual implementation instead of scrollIntoView as seems inconsistent
-      // adjustment for other inconsistencies, not really sure why...
-      formEl.scroll({
-        top: scrollTarget.offsetTop - 119,
-        behavior: 'smooth',
-      });
+    // Determine relevant section, swap to it (without animation)
+    const targetSection = this.sections.findIndex((s) =>
+      s.prompts.find((p) => p.name === fieldname)
+    );
+    if (targetSection !== this.activeSectionIndex) {
+      this.tabAnimationSpeed = 0;
+      this.activeSectionIndex = targetSection || 0;
+      setTimeout(() => {
+        this.tabAnimationSpeed = 2000;
+      }, 50);
     }
+    setTimeout(() => {
+      // locate relevant element and scroll to it
+      const formEl = this.formEl.nativeElement;
+      formEl.scrollTop = 0;
+      const scrollTarget = formEl.querySelector(`#field-container-${fieldname}`) as HTMLDivElement;
+      if (scrollTarget) {
+        // manual implementation instead of scrollIntoView as seems inconsistent
+        // adjustment for other inconsistencies, not really sure why...
+        formEl.scroll({
+          top: scrollTarget.offsetTop - 119,
+          behavior: 'smooth',
+        });
+        // add class for css focus animation
+        scrollTarget.classList.add('scroll-target');
+      }
+    }, 500);
   }
 
   /**
@@ -173,7 +193,9 @@ export class TableRowEditorDialogComponent implements AfterViewInit, OnDestroy {
         ...s,
         section_label: sectionLabels[s.section_name],
         prompts: this.mapSectionPrompts(s.prompts, values, formdef.specification.choices),
-      }));
+      }))
+      // hide sections without any prompts
+      .filter((s) => s.prompts.length > 0);
     console.log('sections', sections);
     return sections;
   }
