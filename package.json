@@ -47,7 +47,7 @@
     "@nrwl/angular": "10.4.4",
     "ag-grid-angular": "^24.1.0",
     "ag-grid-community": "^24.1.0",
-    "axios": "^0.21.0",
+    "axios": "^0.21.1",
     "core-js": "^3.6.5",
     "file-saver": "^2.0.2",
     "jszip": "^3.5.0",
