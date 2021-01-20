@@ -165,7 +165,6 @@ export class ServerLoginComponent {
       this.removeStorage('odkToken');
       this.credentialsForm.reset();
     }
-    this.storage = shouldRemember ? localStorage : sessionStorage;
   }
 
   /** Build login form and pre-populate with any cached values */
