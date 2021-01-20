@@ -17,7 +17,9 @@ export class AppComponent {
   pages: IPage[];
   /** Eagerly load the odk and field display services so that they can initialise */
   constructor(public odkService: OdkService, public fieldsDisplayService: FieldsDisplayService) {
-    this.pages = routes.filter((r) => r.data && r.data.menu).map((r) => r.data.menu as any);
+    this.pages = routes
+      .filter((r) => r.data && r.data.menu)
+      .map((r) => ({ ...r.data.menu, ...r.data }));
   }
   /**
    * Use the title of the page to assign/change animation state
@@ -33,4 +35,5 @@ interface IPage {
   title: string;
   link: string;
   icon: string;
+  guardPriviledgeRequired?: string;
 }

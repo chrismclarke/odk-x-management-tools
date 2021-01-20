@@ -8,11 +8,14 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 import { ComponentsModule } from './components/components.module';
 
-import { ConnectionComponent, TablesComponent, ExportComponent } from './pages';
+import * as P from './pages';
 import { MaterialComponentsModule } from './components/material-components.module';
+import { AppDirectivesModule } from './directives';
+
+const Pages = [P.ConnectionComponent, P.ExportComponent, P.TablesComponent, P.UsersComponent];
 
 @NgModule({
-  declarations: [AppComponent, ConnectionComponent, TablesComponent, ExportComponent],
+  declarations: [AppComponent, ...Pages],
   imports: [
     BrowserModule,
     BrowserAnimationsModule,
@@ -21,6 +24,7 @@ import { MaterialComponentsModule } from './components/material-components.modul
     ComponentsModule,
     AppRoutingModule,
     MaterialComponentsModule,
+    AppDirectivesModule,
     HttpClientModule,
   ],
   providers: [],

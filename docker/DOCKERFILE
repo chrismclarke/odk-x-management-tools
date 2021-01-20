@@ -21,6 +21,14 @@ RUN yarn install --ignore-scripts
 RUN ngcc
 # Copy rest of app files
 ADD . .
+
+############### Deprecated (pass env variables to build) - Setting environment variables ###########
+# Populate docker env settings to the angular build file
+# RUN echo "$(node ./docker/build/setEnv.js)" > ./apps/dashboard/src/environments/docker.env.json
+# Verify docker env settings
+#  RUN echo "$(cat ./apps/dashboard/src/environments/docker.env.json)"
+####################################################################################################
+
 # Build the dashboard with docker env as specified in src/environments (no api proxy)
 # Assumes it will be served on proxy /dashboard
 RUN ["nx", "build","dashboard","--configuration=docker","--base-href=/dashboard/"]

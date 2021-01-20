@@ -1,11 +1,7 @@
 import { Component, Input, Inject } from '@angular/core';
 import { ITableMeta } from '../types/odk.types';
 import { OdkService } from '../services/odk';
-import {
-  MatDialog,
-  MatDialogRef,
-  MAT_DIALOG_DATA,
-} from '@angular/material/dialog';
+import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { ExportService } from '../services/export.service';
 import { environment } from '../../environments/environment';
 import { dateSuffix } from '../utils/date-utils';
@@ -13,17 +9,10 @@ import { dateSuffix } from '../utils/date-utils';
 @Component({
   selector: 'odkxm-table-actions',
   template: `
-    <button
-      *ngIf="!isProduction"
-      mat-raised-button
-      (click)="backupTable()"
-      [disabled]="disabled"
-    >
-      Backup Table
+    <button *ngIf="!isProduction" mat-raised-button (click)="backupTable()" [disabled]="disabled">
+      Backup Table (non-production)
     </button>
-    <button mat-raised-button (click)="exportCSV()" [disabled]="disabled">
-      Export Table
-    </button>
+    <button mat-raised-button (click)="exportCSV()" [disabled]="disabled">Export Table</button>
     <button mat-raised-button (click)="exportAllCSV()" [disabled]="disabled">
       Export All Tables
     </button>
@@ -106,10 +95,7 @@ export class TableActionsComponent {
       csvRows: d.rows,
       filename: `${d.tableId}.csv`,
     }));
-    await this.exportService.exportToCSVZip(
-      exports,
-      `export_${dateSuffix()}.zip`
-    );
+    await this.exportService.exportToCSVZip(exports, `export_${dateSuffix()}.zip`);
     this.disabled = false;
   }
 }
@@ -119,8 +105,7 @@ export class TableActionsComponent {
   template: `
     <h2 mat-dialog-title>Delete Table?</h2>
     <mat-dialog-content
-      >This action will permanently delete the table and cannot be
-      undone.</mat-dialog-content
+      >This action will permanently delete the table and cannot be undone.</mat-dialog-content
     >
     <mat-dialog-actions>
       <button mat-button mat-dialog-close>Cancel</button>
@@ -129,9 +114,7 @@ export class TableActionsComponent {
   `,
 })
 export class TableActionsDeleteDialogComponent {
-  constructor(
-    public dialogRef: MatDialogRef<TableActionsDeleteDialogComponent>
-  ) {}
+  constructor(public dialogRef: MatDialogRef<TableActionsDeleteDialogComponent>) {}
 }
 
 @Component({
