@@ -1,0 +1,11 @@
+<div *ngIf="odkService.userPriviledges$ | async as user">
+  <mat-card>
+    <mat-card-title>Active User</mat-card-title>
+    <mat-card-subtitle>{{ user.user_id }}</mat-card-subtitle>
+    <mat-card-content>
+      <div *ngFor="let role of user.roles">
+        {{ role }}
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>
