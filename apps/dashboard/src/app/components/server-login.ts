@@ -156,10 +156,16 @@ export class ServerLoginComponent {
   public rememberMeChanged() {
     const { shouldRemember } = this.credentialsForm.value;
     if (!shouldRemember) {
+      // ensure both storage systems cleared
+      this.storage = localStorage;
+      this.removeStorage('odkServerUrl');
+      this.removeStorage('odkToken');
+      this.storage = sessionStorage;
       this.removeStorage('odkServerUrl');
       this.removeStorage('odkToken');
       this.credentialsForm.reset();
     }
+    this.storage = shouldRemember ? localStorage : sessionStorage;
   }
 
   /** Build login form and pre-populate with any cached values */
