@@ -10,16 +10,17 @@ import { environment } from '../../../environments/environment';
 @Injectable({ providedIn: 'root' })
 export class OdkService {
   // observable properties for use in components
-  allAppIds$: BehaviorSubject<string[]>;
-  allTables$: BehaviorSubject<IODK.ITableMeta[]>;
-  appId$: BehaviorSubject<string>;
-  table$: BehaviorSubject<IODK.ITableMeta>;
-  tableRows$: BehaviorSubject<IODK.ITableRow[]>;
-  tableSchema$: BehaviorSubject<IODK.ITableSchema>;
-  userPriviledges$: BehaviorSubject<IODK.IUserPriviledge>;
+  allAppIds$ = new BehaviorSubject<string[]>([]);
+  allTables$ = new BehaviorSubject<IODK.ITableMeta[]>([]);
+  appId$ = new BehaviorSubject<string>(undefined);
+  table$ = new BehaviorSubject<IODK.ITableMeta>(undefined);
+  tableRows$ = new BehaviorSubject<IODK.ITableRow[]>(undefined);
+  tableSchema$ = new BehaviorSubject<IODK.ITableSchema>(undefined);
+  userPriviledges$ = new BehaviorSubject<IODK.IUserPriviledge>(undefined);
+  isConnected = new BehaviorSubject<boolean>(false);
+
   /** Limit the maximum number of rows returned from requests (e.g. to prevent timeout depending on server limits) */
   fetchLimit = localStorage.getItem('fetchLimit') || environment.useApiProxy ? '50' : '5000';
-  isConnected: BehaviorSubject<boolean>;
   serverUrl: string;
 
   private _cache: IQueryCache = {};
@@ -34,17 +35,41 @@ export class OdkService {
    */
   private async init() {
     this.serverUrl = null;
-    this.tableSchema$ = new BehaviorSubject(undefined);
-    this.isConnected = new BehaviorSubject(false);
-    this.allAppIds$ = new BehaviorSubject([]);
-    this.allTables$ = new BehaviorSubject([]);
-    this.appId$ = new BehaviorSubject(undefined);
-    this.table$ = new BehaviorSubject(undefined);
-    this.tableRows$ = new BehaviorSubject(undefined);
-    this.userPriviledges$ = new BehaviorSubject(undefined);
+
     this.odkRest = new OdkRestService((err) => {
-      this.notifications.showMessage(`${err.message} \r\n See console for more info`, 'error');
+      const friendlyMessage = this._getFriendlyErrorMessage(err);
+      this.notifications.showMessage(friendlyMessage, 'error');
     });
+  }
+  /**
+   * when disconnecting want to re-initialise behaviour observer values without
+   * removing existing subscriptions
+   */
+  private resetValues() {
+    this.allAppIds$.next([]);
+    this.allTables$.next([]);
+    this.appId$.next(undefined);
+    this.table$.next(undefined);
+    this.tableRows$.next(undefined);
+    this.tableSchema$.next(undefined);
+    this.userPriviledges$.next(undefined);
+    this.isConnected.next(false);
+  }
+  private _getFriendlyErrorMessage(err: Error | string) {
+    let msg = typeof err === 'string' ? err : err.message;
+    if (!msg) {
+      console.log('no message', err);
+    }
+    switch (msg) {
+      case 'Request failed with status code 403':
+        return 'User does not have permission for this operation';
+      default:
+        // console.log('no friendly message:', msg);
+        if (!msg.includes('console')) {
+          msg += '\r\n See console for more info';
+        }
+        return msg;
+    }
   }
 
   /********************************************************
@@ -67,7 +92,7 @@ export class OdkService {
     }
   }
   disconnect() {
-    this.init();
+    this.resetValues();
   }
   setFetchLimit(limit: number) {
     localStorage.setItem('fetchLimit', `${limit}`);
@@ -86,6 +111,7 @@ export class OdkService {
     const userPriviledges = await this.odkRest.getPriviledgesInfo();
     if (userPriviledges) {
       this.userPriviledges$.next(userPriviledges);
+      console.log('user priviledges', userPriviledges);
     }
     this.getAllTables();
   }

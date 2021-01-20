@@ -85,7 +85,7 @@ export class AxiosHttpService {
           console.error(response.data);
         }
         this.errorHandler(err);
-        return Promise.reject(`Request failed, see logs in developer console for more information`);
+        return Promise.reject(err);
       }
     );
   }
