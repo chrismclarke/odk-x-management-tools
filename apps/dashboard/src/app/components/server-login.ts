@@ -156,6 +156,7 @@ export class ServerLoginComponent {
   public rememberMeChanged() {
     const { shouldRemember } = this.credentialsForm.value;
     if (!shouldRemember) {
+      console.log('clearing storage');
       // ensure both storage systems cleared
       this.storage = localStorage;
       this.removeStorage('odkServerUrl');
@@ -163,6 +164,12 @@ export class ServerLoginComponent {
       this.storage = sessionStorage;
       this.removeStorage('odkServerUrl');
       this.removeStorage('odkToken');
+      // expire cookies
+      const allCookies = document.cookie.split(';');
+      for (let i = 0; i < allCookies.length; i++) {
+        document.cookie = allCookies[i] + '=;expires=' + new Date(0).toUTCString();
+      }
+
       this.credentialsForm.reset();
     }
   }
