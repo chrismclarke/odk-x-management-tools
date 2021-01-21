@@ -1,8 +1,8 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { OdkService } from '../services/odk';
-import { ITableMeta } from '../types/odk.types';
 import { FormControl } from '@angular/forms';
 import { Subscription } from 'rxjs';
+import { OdkService } from '../services/odk';
+import { ITableMeta } from '../types/odk.types';
 
 @Component({
   selector: 'odkxm-app-table-select',

@@ -1,10 +1,10 @@
 import { Component, Input, Inject } from '@angular/core';
-import { ITableMeta } from '../types/odk.types';
-import { OdkService } from '../services/odk';
 import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { ExportService } from '../services/export.service';
-import { environment } from '../../environments/environment';
-import { dateSuffix } from '../utils/date-utils';
+import { environment } from '../../../../environments/environment';
+import { ExportService } from '../../../services/export.service';
+import { OdkService } from '../../../services/odk';
+import { ITableMeta } from '../../../types/odk.types';
+import { dateSuffix } from '../../../utils/date-utils';
 
 @Component({
   selector: 'odkxm-table-actions',

@@ -7,9 +7,9 @@ import {
   CellValueChangedEvent,
   Column,
 } from 'ag-grid-community';
-import { ITableRow, ITableSchema } from '../types/odk.types';
-import { OdkService } from '../services/odk';
-import { FieldsDisplayService } from '../services/fieldsDisplay.service';
+import { FieldsDisplayService } from '../../../services/fieldsDisplay.service';
+import { OdkService } from '../../../services/odk';
+import { ITableRow, ITableSchema } from '../../../types/odk.types';
 
 @Component({
   selector: 'odkxm-table-data',

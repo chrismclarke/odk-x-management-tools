@@ -2,8 +2,8 @@ import { AfterViewInit, Component, ElementRef, Inject, OnDestroy, ViewChild } fr
 import { FormControl, FormGroup } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { Subscription } from 'rxjs';
-import { NotificationService } from '../../services/notification.service';
-import { OdkService } from '../../services/odk';
+import { NotificationService } from '../../../../services/notification.service';
+import { OdkService } from '../../../../services/odk';
 import {
   IFormDef,
   IFormSection,
@@ -12,8 +12,8 @@ import {
   ITableMeta,
   ITableRow,
   ITableSchema,
-} from '../../types/odk.types';
-import { FieldsDisplayService } from '../../services/fieldsDisplay.service';
+} from '../../../../types/odk.types';
+import { FieldsDisplayService } from '../../../../services/fieldsDisplay.service';
 /**
  *
  * TODO

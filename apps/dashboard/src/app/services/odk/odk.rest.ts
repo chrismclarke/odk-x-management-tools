@@ -1,6 +1,6 @@
 import * as IODK from '../../types/odk.types';
 import { AxiosHttpService, IErrorHandler } from './http';
-import {ResponseType} from 'axios'
+import { ResponseType } from 'axios';
 
 /**
  * Common methods for interacting with ODK rest
@@ -62,7 +62,7 @@ class OdkRestApi {
 
   getFile(filepath: string, odkClientVersion = 2, responseType: ResponseType = 'arraybuffer') {
     const path = `default/files/${odkClientVersion}/${filepath}?as_attachment=false`;
-    return this.http.get<Buffer  | any>(path, { responseType });
+    return this.http.get<any>(path, { responseType });
   }
 
   getTableIdFileManifest(tableId: string, odkClientVersion = 2) {
@@ -73,23 +73,15 @@ class OdkRestApi {
   /**
    * Upload App-Level File
    * @param filepath - relative path on server, e.g. tables/exampleTable/definition.csv
+   * @param filedata - Buffer data
    */
-  putFile(
-    filePath: string,
-    fileData: Buffer,
-    contentType: string,
-    odkClientVersion = 2
-  ) {
+  putFile(filePath: string, fileData: any, contentType: string, odkClientVersion = 2) {
     // app files and table files have different endpoints
-    return this.http.post(
-      `${this.appId}/files/${odkClientVersion}/${filePath}`,
-      fileData,
-      {
-        'content-type': contentType + '; charset=utf-8',
-        accept: contentType,
-        'accept-charset': 'utf-8',
-      }
-    );
+    return this.http.post(`${this.appId}/files/${odkClientVersion}/${filePath}`, fileData, {
+      'content-type': contentType + '; charset=utf-8',
+      accept: contentType,
+      'accept-charset': 'utf-8',
+    });
   }
   deleteFile(filePath: string, odkClientVersion = 2) {
     return this.http.del(`${this.appId}/files/${odkClientVersion}/${filePath}`);

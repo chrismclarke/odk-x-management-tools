@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, Input } from '@angular/core';
 import { ControlValueAccessor } from '@angular/forms';
-import { ISurveyRowWithValue } from '../../../types/odk.types';
+import { ISurveyRowWithValue } from '../../../../../types/odk.types';
 
 @Component({
   template: ``,

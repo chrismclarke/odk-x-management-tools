@@ -7,7 +7,7 @@ import {
   ViewChild,
 } from '@angular/core';
 import { NG_VALUE_ACCESSOR } from '@angular/forms';
-import { ISurveyRowWithValue } from '../../../../types/odk.types';
+import { ISurveyRowWithValue } from '../../../../../../types/odk.types';
 import { ODKXPromptBase } from '../base';
 
 @Component({

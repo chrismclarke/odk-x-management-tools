@@ -1,11 +1,11 @@
 import { Component } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
+import { OdkService } from '../../services/odk';
+import { ITableRow } from '../../types/odk.types';
 import {
   ITableRowEditorData,
   TableRowEditorDialogComponent,
-} from '../../components/table-row-editor/table-row-editor';
-import { OdkService } from '../../services/odk';
-import { ITableRow } from '../../types/odk.types';
+} from './components/table-row-editor/table-row-editor';
 
 @Component({
   selector: 'odkxm-tables',
