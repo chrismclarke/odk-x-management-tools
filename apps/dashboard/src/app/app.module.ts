@@ -10,10 +10,9 @@ import { SharedComponentsModule } from './components/components.module';
 
 import * as P from './pages';
 import { MaterialComponentsModule } from './components/material-components.module';
-import { AppDirectivesModule } from './directives';
-import { AppTablesModule } from './pages/tables/tables.module';
+import { SharedDirectivesModule } from './directives';
 
-const Pages = [P.ConnectionComponent, P.ExportComponent, P.UsersComponent];
+const Pages = [P.ConnectionComponent, P.UsersComponent];
 
 @NgModule({
   declarations: [AppComponent, ...Pages],
@@ -25,9 +24,8 @@ const Pages = [P.ConnectionComponent, P.ExportComponent, P.UsersComponent];
     SharedComponentsModule,
     AppRoutingModule,
     MaterialComponentsModule,
-    AppDirectivesModule,
+    SharedDirectivesModule,
     HttpClientModule,
-    AppTablesModule,
   ],
   providers: [],
   bootstrap: [AppComponent],

@@ -1,16 +1,25 @@
 import { NgModule } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { RouterModule, Routes } from '@angular/router';
 import { AgGridModule } from 'ag-grid-angular';
 import { SharedComponentsModule } from '../../components/components.module';
+import { MaterialComponentsModule } from '../../components/material-components.module';
+import { SharedPipesModule } from '../../pipes';
+import { SharedDirectivesModule } from '../../directives';
 import { TableRowEditorModule } from './components/table-row-editor/table-row-editor.module';
 import { TableDataComponent } from './components/table-data';
 import { TablesComponent } from './tables.component';
-import { CommonModule } from '@angular/common';
-import { MaterialComponentsModule } from '../../components/material-components.module';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { SharedPipesModule } from '../../pipes';
 
 const TablesComponents = [TableDataComponent];
 const TablesPages = [TablesComponent];
+
+const routes: Routes = [
+  {
+    path: '',
+    component: TablesComponent,
+  },
+];
 
 @NgModule({
   imports: [
@@ -21,10 +30,12 @@ const TablesPages = [TablesComponent];
     FormsModule,
     ReactiveFormsModule,
     SharedPipesModule,
+    SharedDirectivesModule,
     AgGridModule.withComponents([]),
+    RouterModule.forChild(routes),
   ],
   exports: [],
   declarations: [...TablesComponents, ...TablesPages],
   providers: [],
 })
-export class AppTablesModule {}
+export class TablesPageModule {}
