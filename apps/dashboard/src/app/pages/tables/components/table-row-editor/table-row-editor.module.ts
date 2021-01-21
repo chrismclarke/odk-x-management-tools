@@ -6,6 +6,7 @@ import { TableRowEditorDialogComponent } from './table-row-editor';
 import { ODKXPromptsModule } from './prompts/prompts.module';
 import { InputAttributesDisplay } from './components/input-attributes-display';
 import { SharedPipesModule } from '../../../../pipes';
+import { SharedDirectivesModule } from '../../../../directives';
 
 @NgModule({
   imports: [
@@ -15,6 +16,7 @@ import { SharedPipesModule } from '../../../../pipes';
     ODKXPromptsModule,
     MaterialComponentsModule,
     SharedPipesModule,
+    SharedDirectivesModule,
   ],
   exports: [],
   declarations: [TableRowEditorDialogComponent, InputAttributesDisplay],

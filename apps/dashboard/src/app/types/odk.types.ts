@@ -102,6 +102,20 @@ export type ISOString = string;
 // TODO - lists not exhaustive
 export type AccessLevel = 'FULL';
 export type Savepoint = 'COMPLETE';
+/**
+ * Priviledges are used to associate users to specific groups and roles
+
+| Code | Group              | Role                    |
+| ---- | ------------------ | ----------------------- |
+| 500  | site_admins        | ROLE_SITE_ACCESS_ADMIN  |
+| 501  | administer_tables  | ROLE_ADMINISTER_TABLES  |
+| 502  | super_user_tables  | ROLE_SUPER_USER_TABLES  |
+| 503  | synchronize_tables | ROLE_SYNCHRONIZE_TABLES |
+| 504  | form_managers      |
+| 505  | data_viewers       | ROLE_DATA_VIEWER        |
+| 506  | data_collectors    | ROLE_DATA_COLLECTOR     |
+
+ */
 export type Priviledge =
   | 'ROLE_SITE_ACCESS_ADMIN'
   | 'AUTH_LDAP'

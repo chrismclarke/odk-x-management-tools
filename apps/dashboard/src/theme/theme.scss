@@ -50,3 +50,20 @@ body {
   --color-accent: #{$accent};
   --color-accent-light: #{$accent-light};
 }
+
+// Style all elements that are limited by data priviledges
+[data-priviledge-satisfied='false'] {
+  opacity: 0.3;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+[data-priviledge-satisfied='false']::before {
+  content: '🔒 ';
+  left: 0px;
+  font-size: 16px;
+  display: flex;
+  position: absolute;
+  flex-direction: column;
+  justify-content: center;
+  height: 100%;
+}

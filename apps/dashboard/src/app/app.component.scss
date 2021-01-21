@@ -39,7 +39,3 @@
   display: flex;
   justify-content: space-between;
 }
-mat-list-item[data-priviledge-satisfied='false'] {
-  opacity: 0.3;
-  cursor: not-allowed;
-}

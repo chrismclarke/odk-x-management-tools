@@ -151,6 +151,7 @@
       (click)="saveEdits()"
       *ngIf="fieldsChangedArray.length > 0"
       [disabled]="isSaving"
+      [odkxmUserPriviledge]="'ROLE_SUPER_USER_TABLES'"
     >
       Save {{fieldsChangedArray.length}} Edits
     </button>
