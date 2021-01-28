@@ -11,6 +11,7 @@ import { ODKXPromptBase } from '../base';
       [(ngModel)]="value"
       [step]="60"
       [odkxmInputAttributes]="odkxColumns.inputAttributes"
+      min="00:00" max="24:00"
     />
   </div>`,
   styleUrls: ['../prompts.scss'],
