@@ -1,14 +1,14 @@
 name: Release Drafter
-
 on:
   push:
     branches:
       - master
+  workflow_dispatch:
 jobs:
   update_release_draft:
     runs-on: ubuntu-latest
     env:
-      APP_VERSION: "0.0.0"
+      APP_VERSION: '0.0.0'
     steps:
       # Extract current version number from package.json and set it as the APP_VERSION env variable
       - name: checkout
