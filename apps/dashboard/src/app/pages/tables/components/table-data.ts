@@ -7,9 +7,9 @@ import {
   CellValueChangedEvent,
   Column,
 } from 'ag-grid-community';
-import { ITableRow, ITableSchema } from '../types/odk.types';
-import { OdkService } from '../services/odk';
-import { FieldsDisplayService } from '../services/fieldsDisplay.service';
+import { FieldsDisplayService } from '../../../services/fieldsDisplay.service';
+import { OdkService } from '../../../services/odk';
+import { ITableRow, ITableSchema } from '../../../types/odk.types';
 
 @Component({
   selector: 'odkxm-table-data',
@@ -95,20 +95,37 @@ export class TableDataComponent {
   private gridApi: GridApi;
   public columnDefaults: Partial<AgGridColumn>;
   public frameworkComponents = { testCellRenderer: null };
-  public tableEdits: ITableEdit[] = [];
 
   @Output() 'cellSelected' = new EventEmitter<any>();
   @Output() 'tableEditsChange' = new EventEmitter<ITableEdit[]>();
   @Input('rows') set rows(rows: ITableRow[]) {
-    this.tableEdits = [];
+    console.log('setting rows', rows);
     this.rowData = rows;
+    if (this.gridApi) {
+      if (rows) {
+        this.gridApi.hideOverlay();
+      } else {
+        // remove old column headers when still loading data
+        this.gridApi.setColumnDefs([]);
+        // if data has previously been loaded it will assume no rows overlay on
+        // undefined data, so remove that overlay and show the loading one again instead
+        this.gridApi.hideOverlay();
+        setTimeout(() => {
+          this.gridApi.showLoadingOverlay();
+        }, 50);
+      }
+    }
   }
   @Input('schema') set schema(schema: ITableSchema) {
     if (schema) {
-      console.log('table schema', schema);
       this.displayedColumns = this.generateColumns(schema);
-    } else {
-      this.displayedColumns = [];
+      if (this.gridApi) {
+        // ensure previous column headers are removed before applying generated
+        this.gridApi.setColumnDefs([]);
+        setTimeout(() => {
+          this.gridApi.setColumnDefs(this.displayedColumns);
+        }, 50);
+      }
     }
   }
 
@@ -177,10 +194,12 @@ export class TableDataComponent {
       return c;
     });
     const reOrderedColumns = columnsWithDisplayClass.sort((a, b) => {
-      return (
-        this.fieldsDisplayService.getFieldOrder(tableId, a.field) -
-        this.fieldsDisplayService.getFieldOrder(tableId, b.field)
-      );
+      const orderA = this.fieldsDisplayService.getFieldOrder(tableId, a.field);
+      const orderB = this.fieldsDisplayService.getFieldOrder(tableId, b.field);
+      if (orderA !== orderB) {
+        return orderA - orderB;
+      }
+      a.field > b.field ? 1 : -1;
     });
 
     return reOrderedColumns;

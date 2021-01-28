@@ -6,13 +6,13 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
-import { ComponentsModule } from './components/components.module';
+import { SharedComponentsModule } from './components/components.module';
 
 import * as P from './pages';
 import { MaterialComponentsModule } from './components/material-components.module';
-import { AppDirectivesModule } from './directives';
+import { SharedDirectivesModule } from './directives';
 
-const Pages = [P.ConnectionComponent, P.ExportComponent, P.TablesComponent, P.UsersComponent];
+const Pages = [P.ConnectionComponent, P.UsersComponent];
 
 @NgModule({
   declarations: [AppComponent, ...Pages],
@@ -21,10 +21,10 @@ const Pages = [P.ConnectionComponent, P.ExportComponent, P.TablesComponent, P.Us
     BrowserAnimationsModule,
     FormsModule,
     ReactiveFormsModule,
-    ComponentsModule,
+    SharedComponentsModule,
     AppRoutingModule,
     MaterialComponentsModule,
-    AppDirectivesModule,
+    SharedDirectivesModule,
     HttpClientModule,
   ],
   providers: [],

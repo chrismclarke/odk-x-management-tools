@@ -8,11 +8,13 @@ A preview of the site can be found at:
 https://odkx-tools.c2dev.co.uk
 
 ### Deploy With Docker
+
 The recommended use is within the existing docker-compose setup for odk-x. This removes the need to provide specific urls for connection, and provides faster database requests.
 
 See [build-and-deploy-with-docker documentation](./documentation/build-and-deploy-with-docker.md) for more information
 
 ### Use Standalone
+
 Alternatively, the tool can be deployed standalone. This requires both static site hosting for the app itself, as well as a node server application to handle proxying requests.
 
 See [deploy-standalone documentation](./documentation/deploy-standalone.md) for more information

@@ -1,5 +1,5 @@
 import { NgModule } from '@angular/core';
-import { RouterModule, Routes } from '@angular/router';
+import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 import * as Pages from './pages';
 import { IsConnectedGuard, UserPriviledgeGuard } from './guards';
 import { environment } from '../environments/environment';
@@ -17,13 +17,13 @@ export const routes: Routes = [
   },
   {
     path: 'tables',
-    component: Pages.TablesComponent,
+    loadChildren: () => import('./pages/tables/tables.module').then((m) => m.TablesPageModule),
     data: { menu: { title: 'Tables', link: 'tables', icon: 'table_rows' } },
     canActivate: [IsConnectedGuard],
   },
   {
     path: 'export',
-    component: Pages.ExportComponent,
+    loadChildren: () => import('./pages/export/export.module').then((m) => m.ExportPageModule),
     data: {
       menu: { title: 'Export', link: 'export', icon: 'import_export' },
       guardPriviledgeRequired: environment.EXPORT_TABLE_REQUIRED_ROLE,
@@ -39,7 +39,12 @@ export const routes: Routes = [
 ];
 
 @NgModule({
-  imports: [RouterModule.forRoot(routes, { relativeLinkResolution: 'legacy' })],
+  imports: [
+    RouterModule.forRoot(routes, {
+      relativeLinkResolution: 'legacy',
+      preloadingStrategy: PreloadAllModules,
+    }),
+  ],
   exports: [RouterModule],
 })
 export class AppRoutingModule {}
